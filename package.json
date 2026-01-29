@@ -1,0 +1,13 @@
+{
+  "name": "polyassistent",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "ethers": "^6.11.1",
+    "ws": "^8.18.0"
+  }
+}
