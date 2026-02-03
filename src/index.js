@@ -114,15 +114,46 @@ async function startApp() {
   applyGlobalProxyFromEnv(); // Apply proxy settings from environment
 
   // Start data streams
-  const krakenStream = tradeStreamProvider({ pair: CONFIG.kraken.pair });
-  const chainlinkStream = startChainlinkPriceStream({});
+  // We no longer rely on Kraken WS (often rate-limited). Use Chainlink for BTC reference price.
+  const krakenStream = null;
+
+  // Build lightweight 1m candles from Chainlink ticks for indicators (no exchange dependency).
+  const chainlinkCandles1m = [];
+  const pushChainlinkTick = ({ price, updatedAt }) => {
+    if (typeof price !== "number" || !Number.isFinite(price)) return;
+    const ts = typeof updatedAt === "number" && Number.isFinite(updatedAt) ? updatedAt : Date.now();
+    const bucket = Math.floor(ts / 60_000) * 60_000;
+    const last = chainlinkCandles1m[chainlinkCandles1m.length - 1];
+
+    if (!last || last.openTime !== bucket) {
+      chainlinkCandles1m.push({
+        openTime: bucket,
+        open: price,
+        high: price,
+        low: price,
+        close: price,
+        volume: 0,
+        closeTime: bucket + 60_000
+      });
+      // keep last 240
+      if (chainlinkCandles1m.length > 240) chainlinkCandles1m.splice(0, chainlinkCandles1m.length - 240);
+    } else {
+      last.high = Math.max(last.high, price);
+      last.low = Math.min(last.low, price);
+      last.close = price;
+      last.closeTime = bucket + 60_000;
+    }
+  };
+
+  const chainlinkStream = startChainlinkPriceStream({ onUpdate: pushChainlinkTick });
   const polyStream = startPolymarketChainlinkPriceStream({});
 
   // Start UI server
   try { startUIServer(); } catch (err) { console.error('Failed to start UI server:', err); }
 
   console.log(`--- Bot Started ---`);
-  console.log(`Kraken Pair: ${CONFIG.kraken.pair}. Paper Trading: ${CONFIG.paperTrading.enabled ? 'ON' : 'OFF'}`);
+  console.log(`Paper Trading: ${CONFIG.paperTrading.enabled ? 'ON' : 'OFF'}`);
+  console.log(`BTC feed: Chainlink WS (candles built from ticks).`);
   console.log(`UI Server running on http://localhost:${CONFIG.uiPort}. Use 'ngrok http ${CONFIG.uiPort}' for remote access.`);
 
   let prevCurrentPrice = null;
@@ -142,38 +173,27 @@ async function startApp() {
     let currentPrice = null;
     let marketDataFetchSource = "N/A";
 
-    // Fetch Live Price Data ---
-    const krakenTick = krakenStream.getLast?.() ?? null;
-    if (krakenTick?.price) currentPrice = krakenTick.price;
+    // Fetch Live BTC Price Data ---
+    // Primary: Chainlink WS
+    const chainlinkTick = chainlinkStream.getLast?.() ?? null;
+    if (chainlinkTick?.price) currentPrice = chainlinkTick.price;
 
+    // Secondary: Polymarket live BTC feed (if it has a price)
     const polyTick = polyStream.getLast?.() ?? null;
     if (currentPrice === null && polyTick?.price) currentPrice = polyTick.price;
 
-    const chainlinkTick = chainlinkStream.getLast?.() ?? null;
-    if (currentPrice === null && chainlinkTick?.price) currentPrice = chainlinkTick.price;
-    
-    // Fallback to REST if live streams don't provide price
+    // Last resort: Kraken REST (throttled/cached) if configured
     if (currentPrice === null) {
-      try { currentPrice = await klineProvider.fetchLastPrice(); marketDataFetchSource = "Kraken REST"; } 
+      try { currentPrice = await klineProvider.fetchLastPrice(); marketDataFetchSource = "Kraken REST"; }
       catch (restErr) { console.error(`REST price fetch failed: ${restErr.message}`); }
     }
 
-    // --- Fetch Historical Kline Data ---
-    // REST is rate-limited; never let this throw the loop.
-    if (!globalThis.__lastKlines1m) globalThis.__lastKlines1m = [];
-    let klines1m = globalThis.__lastKlines1m;
-    try {
-      const fresh = await klineProvider.fetchKlines({ interval: "1m", limit: 240 });
-      if (Array.isArray(fresh) && fresh.length) {
-        klines1m = fresh;
-        globalThis.__lastKlines1m = fresh;
-      }
-    } catch (e) {
-      console.warn(`Klines fetch failed; using cached klines (${klines1m?.length || 0}). ${e.message}`);
-    }
+    // --- 1m Candle Data for indicators ---
+    // Built from Chainlink ticks (volume=0; VWAP will be null which is fine).
+    const klines1m = chainlinkCandles1m;
 
     if (!klines1m || klines1m.length < CONFIG.candleWindowMinutes) {
-      console.warn(`Not enough 1m kline data (${klines1m?.length || 0}). Indicators might be unreliable.`);
+      console.warn(`Not enough Chainlink 1m candles yet (${klines1m?.length || 0}). Indicators might be unreliable.`);
     }
 
     const polySnapshot = await fetchPolymarketSnapshot();
@@ -196,8 +216,9 @@ async function startApp() {
       indicatorsData.heikenCount = haCC.count;
       indicatorsData.failedVwapReclaim = indicatorsData.vwapNow !== null && indicatorsData.vwapSeries.length >= 3 ? closes[closes.length - 1] < indicatorsData.vwapNow && indicatorsData.vwapSeries[indicatorsData.vwapSeries.length - 2] > indicatorsData.vwapSeries[indicatorsData.vwapSeries.length - 2] : false;
       indicatorsData.vwapCrossCount = countVwapCrosses(closes, indicatorsData.vwapSeries, 20);
-      indicatorsData.volumeRecent = klines1m.slice(-20).reduce((a, c) => a + c.volume, 0);
-      indicatorsData.volumeAvg = klines1m.slice(-120).reduce((a, c) => a + c.volume, 0) / 6;
+      // Volume is not available from Chainlink ticks; leave null so volume filter doesn't trigger.
+      indicatorsData.volumeRecent = null;
+      indicatorsData.volumeAvg = null;
     }
     
     const regimeInfo = detectRegime({ price: currentPrice, ...indicatorsData });
