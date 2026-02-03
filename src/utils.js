@@ -27,8 +27,13 @@ export function getCandleWindowTiming(windowMinutes) {
   const windowMs = windowMinutes * 60_000;
   const startMs = Math.floor(nowMs / windowMs) * windowMs;
   const endMs = startMs + windowMs;
-  const elapsedMs = nowMs - startMs;
-  const remainingMs = endMs - nowMs;
+
+  // Guard against small timing drift around boundaries.
+  const rawElapsedMs = nowMs - startMs;
+  const rawRemainingMs = endMs - nowMs;
+  const elapsedMs = Math.max(0, Math.min(windowMs, rawElapsedMs));
+  const remainingMs = Math.max(0, rawRemainingMs);
+
   return {
     startMs,
     endMs,

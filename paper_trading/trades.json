@@ -1,0 +1,101 @@
+{
+  "trades": [
+    {
+      "id": "1770097983710ol89v",
+      "timestamp": "2026-02-03T05:53:03.710Z",
+      "marketSlug": "btc-updown-15m-1770097500",
+      "side": "DOWN",
+      "entryPrice": 78360.6,
+      "contractSize": 100,
+      "status": "CLOSED",
+      "entryTime": "2026-02-03T05:53:03.709Z",
+      "exitPrice": 78649.7,
+      "exitTime": "2026-02-03T07:59:50.647Z",
+      "pnl": -0.37,
+      "entryPhase": "MID",
+      "exitReason": "End of Candle"
+    },
+    {
+      "id": "17701056827122htqv",
+      "timestamp": "2026-02-03T08:01:22.712Z",
+      "marketSlug": "btc-updown-15m-1770105600",
+      "side": "UP",
+      "entryPrice": 78771.6,
+      "contractSize": 100,
+      "status": "CLOSED",
+      "entryTime": "2026-02-03T08:01:22.712Z",
+      "exitPrice": 78443.7,
+      "exitTime": "2026-02-03T08:14:30.378Z",
+      "pnl": -0.42,
+      "entryPhase": "EARLY",
+      "exitReason": "End of Candle"
+    },
+    {
+      "id": "1770106503990dw8vb",
+      "timestamp": "2026-02-03T08:15:03.990Z",
+      "marketSlug": "btc-updown-15m-1770106500",
+      "side": "DOWN",
+      "entryPrice": 78419.5,
+      "contractSize": 100,
+      "status": "CLOSED",
+      "entryTime": "2026-02-03T08:15:03.990Z",
+      "exitPrice": 78855.9,
+      "exitTime": "2026-02-03T08:29:30.327Z",
+      "pnl": -0.56,
+      "entryPhase": "EARLY",
+      "exitReason": "End of Candle"
+    },
+    {
+      "id": "17701074004682halrk",
+      "timestamp": "2026-02-03T08:30:00.468Z",
+      "marketSlug": "btc-updown-15m-1770107400",
+      "side": "UP",
+      "entryPrice": 78834.8,
+      "contractSize": 100,
+      "status": "CLOSED",
+      "entryTime": "2026-02-03T08:30:00.468Z",
+      "exitPrice": 78934.3,
+      "exitTime": "2026-02-03T08:44:30.264Z",
+      "pnl": 0.13,
+      "entryPhase": "EARLY",
+      "exitReason": "End of Candle"
+    },
+    {
+      "id": "1770108304340t0htvl",
+      "timestamp": "2026-02-03T08:45:04.340Z",
+      "marketSlug": "btc-updown-15m-1770108300",
+      "side": "UP",
+      "entryPrice": 78942.1,
+      "contractSize": 100,
+      "status": "CLOSED",
+      "entryTime": "2026-02-03T08:45:04.340Z",
+      "exitPrice": 0.0058,
+      "exitTime": "2026-02-03T09:15:01.079Z",
+      "pnl": -100,
+      "entryPhase": "EARLY",
+      "exitReason": "Probability Flip"
+    },
+    {
+      "id": "1770110101289yfke9g",
+      "timestamp": "2026-02-03T09:15:01.289Z",
+      "marketSlug": "btc-updown-15m-1770110100",
+      "side": "DOWN",
+      "entryPrice": 0.0040999999999999995,
+      "shares": 24390.243902439026,
+      "contractSize": 100,
+      "status": "OPEN",
+      "entryTime": "2026-02-03T09:15:01.289Z",
+      "exitPrice": null,
+      "exitTime": null,
+      "pnl": 0,
+      "entryPhase": "EARLY"
+    }
+  ],
+  "summary": {
+    "totalTrades": 6,
+    "wins": 1,
+    "losses": 4,
+    "totalPnL": -101.22,
+    "winRate": 20
+  }
+}

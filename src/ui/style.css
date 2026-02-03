@@ -1,0 +1,73 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #0056b3;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #eef2f6;
+    border-radius: 5px;
+    border: 1px solid #d0d8da;
+}
+
+.section h2 {
+    margin-top: 0;
+    color: #004085;
+    text-align: left;
+    border-bottom: 2px solid #0056b3;
+    padding-bottom: 5px;
+}
+
+#open-trade, #ledger-summary, #recent-trades {
+    font-family: 'Courier New', Courier, monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+#open-trade.closed {
+    color: #777;
+}
+
+.trade-entry {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    border: 1px solid #ced4da;
+}
+
+.trade-entry span {
+    font-weight: bold;
+}
+
+.positive {
+    color: #28a745;
+}
+
+.negative {
+    color: #dc3545;
+}
