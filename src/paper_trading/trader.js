@@ -95,6 +95,7 @@ export class Trader {
         const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;
         if (!(typeof entryPrice === "number") || !Number.isFinite(entryPrice) || entryPrice < minPoly || entryPrice > maxPoly) {
           // Skip entry if price is out of bounds
+          console.warn(`Skipping entry due to invalid Poly price: side=${side} entryPrice=${entryPrice} min=${minPoly} max=${maxPoly}`);
           return;
         }
 

@@ -108,6 +108,19 @@ export async function initializeLedger() {
 
 // Add a new trade record
 export async function addTrade(trade) {
+  // Ledger-level sanity: never persist an invalid OPEN trade.
+  const isOpen = (trade?.status ?? "OPEN") === "OPEN";
+  if (isOpen) {
+    const ep = trade?.entryPrice;
+    const sh = trade?.shares;
+    const badEp = typeof ep !== "number" || !Number.isFinite(ep) || ep <= 0;
+    const badSh = sh !== null && sh !== undefined && (!Number.isFinite(Number(sh)) || Number(sh) <= 0);
+    if (badEp || badSh) {
+      console.warn("Refusing to add invalid OPEN trade to ledger:", { entryPrice: ep, shares: sh, side: trade?.side });
+      return;
+    }
+  }
+
   await updateLedger((ledger) => {
     const newTrade = {
       ...trade,
