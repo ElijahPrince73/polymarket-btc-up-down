@@ -221,6 +221,9 @@ async function startApp() {
       indicatorsData.volumeAvg = null;
     }
     
+    // Guard: when indicators aren't ready yet (startup), ensure required fields exist.
+    if (!indicatorsData.macd) indicatorsData.macd = { hist: null, histDelta: null };
+
     const regimeInfo = detectRegime({ price: currentPrice, ...indicatorsData });
     const scored = scoreDirection({ price: currentPrice, ...indicatorsData });
     const timeAware = applyTimeAwareness(scored.rawUp, timeLeftMin, CONFIG.candleWindowMinutes);
