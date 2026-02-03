@@ -82,6 +82,11 @@ export const CONFIG = {
     minVolumeRecent: Number(process.env.MIN_VOLUME_RECENT) || 0,
     // require volumeRecent >= volumeAvg * minVolumeRatio (volumeAvg is approx avg per-20m block)
     minVolumeRatio: Number(process.env.MIN_VOLUME_RATIO) || 0,
+
+    // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
+    // Example: 0.001 = 0.10¢
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.001,
+    maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.999,
     
     // Time filters
     noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 2,

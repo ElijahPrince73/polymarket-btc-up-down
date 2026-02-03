@@ -68,7 +68,17 @@ export class Trader {
       if (meetsThresholds) {
         // Model: spend $contractSize at entry price; shares = notional / price
         const entryPrice = currentPolyPrice;
-        const shares = entryPrice > 0 ? (CONFIG.paperTrading.contractSize / entryPrice) : null;
+
+        // Sanity guard: never enter at 0 / near-0 prices.
+        const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.001;
+        const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;
+        if (!(typeof entryPrice === "number") || !Number.isFinite(entryPrice) || entryPrice < minPoly || entryPrice > maxPoly) {
+          // Skip entry if price is out of bounds
+          return;
+        }
+
+        const shares = (entryPrice > 0) ? (CONFIG.paperTrading.contractSize / entryPrice) : null;
+        if (shares === null || !Number.isFinite(shares) || shares <= 0) return;
 
         this.openTrade = {
           id: Date.now().toString() + Math.random().toString(36).substring(2, 8),

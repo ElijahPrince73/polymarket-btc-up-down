@@ -8,6 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatCurrency = (value, decimals = 2) => value.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     const formatPercentage = (value, decimals = 2) => value.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + '%';
 
+    // Polymarket prices can be tiny (sub-1¢). Use adaptive decimals.
+    const formatCents = (dollars) => {
+        if (dollars == null || !Number.isFinite(Number(dollars))) return 'N/A';
+        const cents = Number(dollars) * 100;
+        const decimals = cents < 1 ? 4 : 2;
+        return cents.toFixed(decimals);
+    };
+
     // Function to fetch and display data
     const fetchData = async () => {
         try {
@@ -56,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 openTradeDiv.textContent =
                     `ID: ${t.id?.slice(0, 8) || 'N/A'}\n` +
                     `Side: ${t.side}\n` +
-                    `Entry: ${(Number(t.entryPrice) * 100).toFixed(2)}¢\n` +
-                    `Current: ${cur != null ? (cur * 100).toFixed(2) + '¢' : 'N/A'}\n` +
+                    `Entry: ${formatCents(t.entryPrice)}¢\n` +
+                    `Current: ${cur != null ? formatCents(cur) + '¢' : 'N/A'}\n` +
                     `Unrealized PnL: ${uPnl}\n` +
                     `Contract: $${formatCurrency(t.contractSize)}\n` +
                     `Phase: ${t.entryPhase || 'N/A'}\n` +
@@ -95,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tradesToDisplay = trades.slice(-10).reverse();
 
                 const rowsHtml = tradesToDisplay.map((trade) => {
-                    const entryPx = (trade.entryPrice != null) ? (Number(trade.entryPrice) * 100).toFixed(2) : 'N/A';
-                    const exitPx = (trade.exitPrice != null) ? (Number(trade.exitPrice) * 100).toFixed(2) : 'N/A';
+                    const entryPx = (trade.entryPrice != null) ? formatCents(trade.entryPrice) : 'N/A';
+                    const exitPx = (trade.exitPrice != null) ? formatCents(trade.exitPrice) : 'N/A';
                     const entryAt = trade.entryTime ? new Date(trade.entryTime).toLocaleString() : 'N/A';
                     const exitAt = trade.exitTime ? new Date(trade.exitTime).toLocaleString() : 'N/A';
                     const pnl = (trade.pnl != null) ? Number(trade.pnl) : 0;
