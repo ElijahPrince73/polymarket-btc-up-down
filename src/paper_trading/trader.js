@@ -8,9 +8,30 @@ export class Trader {
   }
 
   async initialize() {
-    const ledger = loadLedger();
+    loadLedger();
     this.openTrade = ledgerGetOpenTrade();
-    console.log("Trader initialized. Open trade:", this.openTrade ? this.openTrade.id.substring(0,8) : "None");
+
+    // Guard against corrupted/invalid open trades (e.g., entryPrice 0.00)
+    if (this.openTrade) {
+      const t = this.openTrade;
+      const badPrice = typeof t.entryPrice !== "number" || !Number.isFinite(t.entryPrice) || t.entryPrice <= 0;
+      const badShares = t.shares !== null && t.shares !== undefined && (!Number.isFinite(Number(t.shares)) || Number(t.shares) <= 0);
+      if (badPrice || badShares) {
+        console.warn("Invalid open trade found in ledger; force-closing:", { id: t.id, entryPrice: t.entryPrice, shares: t.shares });
+        const forced = {
+          ...t,
+          status: "CLOSED",
+          exitPrice: t.exitPrice ?? null,
+          exitTime: new Date().toISOString(),
+          pnl: 0,
+          exitReason: "Invalid Entry (sanity check)"
+        };
+        await updateTrade(t.id, forced);
+        this.openTrade = null;
+      }
+    }
+
+    console.log("Trader initialized. Open trade:", this.openTrade ? this.openTrade.id.substring(0, 8) : "None");
   }
 
   async processSignals(signals, klines1m) {

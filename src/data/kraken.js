@@ -314,12 +314,15 @@ export function startKrakenTradeStream({ pair = CONFIG.kraken.pair, onUpdate } =
       }
     });
 
-    const scheduleReconnect = () => {
+    const scheduleReconnect = (opts = {}) => {
       if (closed) return;
       try { ws?.terminate(); } catch { /* ignore */ }
       ws = null;
-      const wait = reconnectMs;
-      reconnectMs = Math.min(MAX_RECONNECT_INTERVAL, Math.floor(reconnectMs * 1.5));
+
+      const wait = typeof opts.waitMs === "number" ? opts.waitMs : reconnectMs;
+      // Exponential backoff with a higher cap to avoid 429 storms.
+      reconnectMs = Math.min(60_000, Math.floor(reconnectMs * 1.8));
+
       setTimeout(connect, wait);
     };
 
@@ -328,7 +331,17 @@ export function startKrakenTradeStream({ pair = CONFIG.kraken.pair, onUpdate } =
       scheduleReconnect();
     });
     ws.on("error", (err) => {
+      const msg = String(err?.message || err);
       console.error("Kraken WebSocket encountered an error:", err);
+
+      // If Kraken is rate limiting the WS handshake, back off hard.
+      if (msg.includes("429")) {
+        console.warn("Kraken WS rate-limited (429). Backing off 60s before reconnect.");
+        reconnectMs = 60_000;
+        scheduleReconnect({ waitMs: 60_000 });
+        return;
+      }
+
       scheduleReconnect();
     });
   };
