@@ -20,7 +20,6 @@ export class Trader {
     // BTC price/klines are only used for generating the signal.
     const side = signals.rec?.side;
     const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
-
     const timeLeftMin = signals.timeLeftMin;
     const marketSlug = signals.market?.slug || "unknown";
 
@@ -76,6 +75,7 @@ export class Trader {
           timestamp: new Date().toISOString(),
           marketSlug,
           side,
+          instrument: "POLY",
           entryPrice, // dollars (0..1)
           shares,
           contractSize: CONFIG.paperTrading.contractSize,
@@ -132,16 +132,13 @@ export class Trader {
   }
 
   async closeTrade(trade, exitPrice, reason) {
-    // Mark-to-market PnL on a $notional position.
-    // We "buy" shares at entryPrice with contractSize dollars: shares = contractSize/entryPrice.
-    // Current value = shares * exitPrice.
-    let pnl = 0;
+    // POLY behavior: $notional -> shares
     const shares = (typeof trade.shares === "number" && Number.isFinite(trade.shares))
       ? trade.shares
       : (trade.entryPrice > 0 ? trade.contractSize / trade.entryPrice : 0);
 
     const value = shares * exitPrice;
-    pnl = value - trade.contractSize;
+    const pnl = value - trade.contractSize;
 
     trade.exitPrice = exitPrice;
     trade.exitTime = new Date().toISOString();
