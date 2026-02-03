@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('status-message');
     const openTradeDiv = document.getElementById('open-trade');
     const ledgerSummaryDiv = document.getElementById('ledger-summary');
-    const recentTradesDiv = document.getElementById('recent-trades');
+    const recentTradesBody = document.getElementById('recent-trades-body');
 
     // Function to format currency and percentages
     const formatCurrency = (value, decimals = 2) => value.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -90,26 +90,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const tradesResponse = await fetch('/api/trades');
             const trades = await tradesResponse.json();
             
-            if (trades.length > 0) {
-                let tradesHtml = '';
-                // Display only the last N trades for brevity, or all if less than N
-                const tradesToDisplay = trades.slice(-10).reverse(); // Show latest 10, newest first
-                tradesToDisplay.forEach(trade => {
-                    const pnlClass = trade.pnl >= 0 ? 'positive' : 'negative';
-                    const entryPx = (trade.entryPrice != null) ? (Number(trade.entryPrice) * 100).toFixed(2) + '¢' : 'N/A';
-                    const exitPx = (trade.exitPrice != null) ? (Number(trade.exitPrice) * 100).toFixed(2) + '¢' : 'N/A';
+            if (Array.isArray(trades) && trades.length > 0) {
+                // Display only the last N trades for brevity, newest first
+                const tradesToDisplay = trades.slice(-10).reverse();
 
+                const rowsHtml = tradesToDisplay.map((trade) => {
+                    const entryPx = (trade.entryPrice != null) ? (Number(trade.entryPrice) * 100).toFixed(2) : 'N/A';
+                    const exitPx = (trade.exitPrice != null) ? (Number(trade.exitPrice) * 100).toFixed(2) : 'N/A';
                     const entryAt = trade.entryTime ? new Date(trade.entryTime).toLocaleString() : 'N/A';
                     const exitAt = trade.exitTime ? new Date(trade.exitTime).toLocaleString() : 'N/A';
+                    const pnl = (trade.pnl != null) ? Number(trade.pnl) : 0;
+                    const pnlClass = pnl >= 0 ? 'positive' : 'negative';
 
-                    tradesHtml += `${trade.id?.slice(0, 8) || 'N/A'} | ${trade.side} | entry ${entryPx} @ ${entryAt} | exit ${exitPx} @ ${exitAt} | pnl $${formatCurrency(trade.pnl)} | ${trade.status} | ${trade.exitReason || 'N/A'}\n`;
-                });
-                recentTradesDiv.textContent = tradesHtml;
+                    return `
+                      <tr>
+                        <td>${entryAt}</td>
+                        <td>${exitAt}</td>
+                        <td>${trade.side || 'N/A'}</td>
+                        <td>${entryPx}</td>
+                        <td>${exitPx}</td>
+                        <td class="${pnlClass}">${formatCurrency(pnl)}</td>
+                        <td>${trade.status || 'N/A'}</td>
+                        <td>${trade.exitReason || 'N/A'}</td>
+                      </tr>
+                    `;
+                }).join('');
+
+                recentTradesBody.innerHTML = rowsHtml;
             } else {
-                recentTradesDiv.innerHTML = 'No trades recorded yet.';
+                recentTradesBody.innerHTML = '<tr><td colspan="8">No trades recorded yet.</td></tr>';
             }
         } catch (error) {
-            recentTradesDiv.innerHTML = 'Error loading recent trades.';
+            recentTradesBody.innerHTML = '<tr><td colspan="8">Error loading recent trades.</td></tr>';
             console.error('Error fetching recent trades:', error);
         }
     };

@@ -38,7 +38,7 @@ h1, h2 {
     padding-bottom: 5px;
 }
 
-#open-trade, #ledger-summary, #recent-trades {
+#open-trade, #ledger-summary {
     font-family: 'Courier New', Courier, monospace;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -46,6 +46,30 @@ h1, h2 {
     padding: 15px;
     border-radius: 4px;
     border: 1px solid #dee2e6;
+}
+
+#recent-trades-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+#recent-trades-table th, #recent-trades-table td {
+    border: 1px solid #dee2e6;
+    padding: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    vertical-align: top;
+}
+
+#recent-trades-table th {
+    background: #e9ecef;
+    text-align: left;
+}
+
+#recent-trades-table tbody tr:nth-child(even) {
+    background: #f1f3f5;
 }
 
 #open-trade.closed {
