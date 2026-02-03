@@ -146,6 +146,11 @@ async function startApp() {
   };
 
   const chainlinkStream = startChainlinkPriceStream({ onUpdate: pushChainlinkTick });
+  // Prime candles with an initial REST fetch so indicators can start without WS.
+  try {
+    const restTick = await fetchChainlinkBtcUsd();
+    if (restTick?.price) pushChainlinkTick({ price: restTick.price, updatedAt: restTick.updatedAt ?? Date.now() });
+  } catch { /* ignore */ }
   const polyStream = startPolymarketChainlinkPriceStream({});
 
   // Start UI server
@@ -174,9 +179,23 @@ async function startApp() {
     let marketDataFetchSource = "N/A";
 
     // Fetch Live BTC Price Data ---
-    // Primary: Chainlink WS
+    // Primary: Chainlink WS (if configured)
     const chainlinkTick = chainlinkStream.getLast?.() ?? null;
     if (chainlinkTick?.price) currentPrice = chainlinkTick.price;
+
+    // Fallback: Chainlink REST (reliable) + feed candle builder
+    if (currentPrice === null) {
+      try {
+        const restTick = await fetchChainlinkBtcUsd();
+        if (restTick?.price) {
+          currentPrice = restTick.price;
+          pushChainlinkTick({ price: restTick.price, updatedAt: restTick.updatedAt ?? Date.now() });
+          marketDataFetchSource = "Chainlink REST";
+        }
+      } catch (e) {
+        console.error(`Chainlink REST price fetch failed: ${e.message}`);
+      }
+    }
 
     // Secondary: Polymarket live BTC feed (if it has a price)
     const polyTick = polyStream.getLast?.() ?? null;
