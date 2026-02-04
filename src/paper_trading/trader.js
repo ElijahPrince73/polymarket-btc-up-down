@@ -71,13 +71,10 @@ export class Trader {
 
     // --- ENTRY ---
     // Wait until indicators are warmed up (enough candles)
-    if (!indicatorsReady) {
-      // Still allow exits below.
-      return;
-    }
+    const canEnter = indicatorsReady;
 
     // No-trade if volume is below threshold(s)
-    if (!this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
+    if (canEnter && !this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds

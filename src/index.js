@@ -298,7 +298,7 @@ async function startApp() {
     if (CONFIG.paperTrading.enabled && trader) await trader.processSignals(signalsForTrader, klines1m);
 
     // --- Console UI Rendering ---
-    const vwapSlopeLabel = indicatorsData.vwapSlope === null ? "-" : indicatorsData.vwapSlope > 0 ? "UP" : indicatorsData.vwapSlope < 0 ? "DOWN" : "FLAT";
+    const vwapSlopeLabel = indicatorsData.vwapSlope === null || indicatorsData.vwapSlope === undefined ? "-" : indicatorsData.vwapSlope > 0 ? "UP" : indicatorsData.vwapSlope < 0 ? "DOWN" : "FLAT";
     const macdHist = indicatorsData.macd?.hist ?? null;
     const macdHistDelta = indicatorsData.macd?.histDelta ?? null;
     const macdLabel = (macdHist === null || macdHist === undefined)
