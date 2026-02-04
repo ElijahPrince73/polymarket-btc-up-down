@@ -1,5 +1,5 @@
 import { CONFIG } from "../config.js";
-import { loadLedger, addTrade, updateTrade, getOpenTrade as ledgerGetOpenTrade, getLedger, recalculateSummary, updateLedger } from "./ledger.js";
+import { loadLedger, addTrade, updateTrade, getOpenTrade as ledgerGetOpenTrade, getLedger, recalculateSummary } from "./ledger.js";
 
 // Core trading logic - NO fixed TP/SL, dynamic exits only
 export class Trader {
@@ -33,6 +33,34 @@ export class Trader {
     }
 
     console.log("Trader initialized. Open trade:", this.openTrade ? this.openTrade.id.substring(0, 8) : "None");
+  }
+
+  getBalanceSnapshot() {
+    const ledger = getLedger();
+    const summary = ledger.summary ?? recalculateSummary(ledger.trades ?? []);
+    const starting = CONFIG.paperTrading.startingBalance ?? 1000;
+    const realized = typeof summary.totalPnL === "number" ? summary.totalPnL : 0;
+    const balance = starting + realized;
+    return { balance, starting, realized };
+  }
+
+  computeContractSizeUsd() {
+    const { balance } = this.getBalanceSnapshot();
+    if (!Number.isFinite(balance) || balance <= 0) return 0;
+
+    const stakePct = CONFIG.paperTrading.stakePct;
+    const useDynamic = typeof stakePct === "number" && Number.isFinite(stakePct) && stakePct > 0;
+
+    const minUsd = CONFIG.paperTrading.minTradeUsd ?? 0;
+    const maxUsd = CONFIG.paperTrading.maxTradeUsd ?? Number.POSITIVE_INFINITY;
+
+    let size = useDynamic ? (balance * stakePct) : (CONFIG.paperTrading.contractSize ?? 100);
+    size = Math.max(minUsd, Math.min(maxUsd, size));
+    size = Math.min(size, balance);
+
+    // round to cents
+    size = Math.floor(size * 100) / 100;
+    return size;
   }
 
   async processSignals(signals, klines1m) {
@@ -107,7 +135,13 @@ export class Trader {
           return;
         }
 
-        const shares = (entryPrice > 0) ? (CONFIG.paperTrading.contractSize / entryPrice) : null;
+        const contractSizeUsd = this.computeContractSizeUsd();
+        if (!contractSizeUsd || contractSizeUsd <= 0) {
+          console.warn("Skipping entry: no available balance for trade size.");
+          return;
+        }
+
+        const shares = (entryPrice > 0) ? (contractSizeUsd / entryPrice) : null;
         if (shares === null || !Number.isFinite(shares) || shares <= 0) return;
 
         this.openTrade = {
@@ -118,7 +152,7 @@ export class Trader {
           instrument: "POLY",
           entryPrice, // dollars (0..1)
           shares,
-          contractSize: CONFIG.paperTrading.contractSize,
+          contractSize: contractSizeUsd,
           status: "OPEN",
           entryTime: new Date().toISOString(),
           exitPrice: null,
@@ -127,7 +161,8 @@ export class Trader {
           entryPhase: phase
         };
         await addTrade(this.openTrade);
-        console.log(`📈 TRADE OPENED (POLY): ${side} @ ${(entryPrice * 100).toFixed(2)}¢ | $${CONFIG.paperTrading.contractSize}`);
+        const { balance } = this.getBalanceSnapshot();
+        console.log(`📈 TRADE OPENED (POLY): ${side} @ ${(entryPrice * 100).toFixed(2)}¢ | $${contractSizeUsd} (balance ~$${balance.toFixed(2)})`);
       }
     }
 
@@ -201,30 +236,36 @@ export class Trader {
             const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.001;
             const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;
             if (typeof entryPrice === "number" && Number.isFinite(entryPrice) && entryPrice >= minPoly && entryPrice <= maxPoly && !isLowLiquidity && !isLowVolume) {
-              const shares = entryPrice > 0 ? (CONFIG.paperTrading.contractSize / entryPrice) : null;
-              if (shares !== null && Number.isFinite(shares) && shares > 0) {
-                const flipped = {
-                  id: Date.now().toString() + Math.random().toString(36).substring(2, 8),
-                  timestamp: new Date().toISOString(),
-                  marketSlug,
-                  side: newSide,
-                  instrument: "POLY",
-                  entryPrice,
-                  shares,
-                  contractSize: CONFIG.paperTrading.contractSize,
-                  status: "OPEN",
-                  entryTime: new Date().toISOString(),
-                  exitPrice: null,
-                  exitTime: null,
-                  pnl: 0,
-                  entryPhase: signals.rec?.phase ?? "MID",
-                  entryReason: "Flip"
-                };
+              const contractSizeUsd = this.computeContractSizeUsd();
+              if (!contractSizeUsd || contractSizeUsd <= 0) {
+                console.warn("Skipping flip entry: no available balance for trade size.");
+              } else {
+                const shares = entryPrice > 0 ? (contractSizeUsd / entryPrice) : null;
+                if (shares !== null && Number.isFinite(shares) && shares > 0) {
+                  const flipped = {
+                    id: Date.now().toString() + Math.random().toString(36).substring(2, 8),
+                    timestamp: new Date().toISOString(),
+                    marketSlug,
+                    side: newSide,
+                    instrument: "POLY",
+                    entryPrice,
+                    shares,
+                    contractSize: contractSizeUsd,
+                    status: "OPEN",
+                    entryTime: new Date().toISOString(),
+                    exitPrice: null,
+                    exitTime: null,
+                    pnl: 0,
+                    entryPhase: signals.rec?.phase ?? "MID",
+                    entryReason: "Flip"
+                  };
 
-                await addTrade(flipped);
-                this.openTrade = flipped;
-                this.lastFlipAtMs = Date.now();
-                console.log(`🔁 FLIP OPENED (POLY): ${newSide} @ ${(entryPrice * 100).toFixed(2)}¢ | $${CONFIG.paperTrading.contractSize}`);
+                  await addTrade(flipped);
+                  this.openTrade = flipped;
+                  this.lastFlipAtMs = Date.now();
+                  const { balance } = this.getBalanceSnapshot();
+                  console.log(`🔁 FLIP OPENED (POLY): ${newSide} @ ${(entryPrice * 100).toFixed(2)}¢ | $${contractSizeUsd} (balance ~$${balance.toFixed(2)})`);
+                }
               }
             }
           }

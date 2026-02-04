@@ -51,7 +51,15 @@ export const CONFIG = {
   // Paper trading settings
   paperTrading: {
     enabled: (process.env.PAPER_TRADING_ENABLED || "true").toLowerCase() === "true",
-    contractSize: Number(process.env.PAPER_CONTRACT_SIZE) || 100, // $100 per contract
+
+    // Bankroll + position sizing
+    startingBalance: Number(process.env.STARTING_BALANCE) || 1000,
+    stakePct: Number(process.env.STAKE_PCT) || 0.10, // 10% of balance per trade
+    minTradeUsd: Number(process.env.MIN_TRADE_USD) || 25,
+    maxTradeUsd: Number(process.env.MAX_TRADE_USD) || 250,
+
+    // Back-compat (legacy fixed size). If stakePct is set, we use dynamic sizing.
+    contractSize: Number(process.env.PAPER_CONTRACT_SIZE) || 100,
     
     // Thresholds (higher = more hesitation)
     minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.60,
