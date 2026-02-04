@@ -92,7 +92,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Fetch ledger summary
             const summary = statusData.ledgerSummary || { totalTrades: 0, wins: 0, losses: 0, totalPnL: 0, winRate: 0 };
+            const bal = statusData.balance || { starting: 0, realized: 0, balance: 0 };
+            const pt = statusData.paperTrading || {};
             ledgerSummaryDiv.textContent =
+                `Starting Balance: $${formatCurrency(bal.starting ?? 0)}\n` +
+                `Current Balance:  $${formatCurrency(bal.balance ?? 0)}\n` +
+                `Realized PnL:     $${formatCurrency(bal.realized ?? 0)}\n` +
+                `Stake %:          ${pt.stakePct != null ? formatPercentage(Number(pt.stakePct) * 100, 1) : 'N/A'}\n` +
+                `Min/Max Trade:    $${formatCurrency(pt.minTradeUsd ?? 0)} / $${formatCurrency(pt.maxTradeUsd ?? 0)}\n` +
+                `Stop Loss:        ${pt.stopLossPct != null ? formatPercentage(Number(pt.stopLossPct) * 100, 1) : 'N/A'}\n` +
+                `Flip Enabled:     ${pt.flipOnProbabilityFlip != null ? String(pt.flipOnProbabilityFlip) : 'N/A'}\n` +
+                `\n` +
                 `Total Trades: ${summary.totalTrades ?? 0}\n` +
                 `Wins: ${summary.wins ?? 0}\n` +
                 `Losses: ${summary.losses ?? 0}\n` +

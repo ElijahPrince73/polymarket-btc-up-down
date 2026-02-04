@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 
+import { CONFIG } from '../config.js';
 import { initializeLedger, getLedger, recalculateSummary } from '../paper_trading/ledger.js'; // To fetch trade data and summary
 import { getOpenTrade } from '../paper_trading/trader.js'; // To get current open trade status
 
@@ -36,6 +37,10 @@ app.get('/api/status', async (req, res) => {
 
     const summary = ledgerData.summary ?? recalculateSummary(ledgerData.trades ?? []);
 
+    const starting = CONFIG.paperTrading.startingBalance ?? 1000;
+    const realized = typeof summary.totalPnL === 'number' ? summary.totalPnL : 0;
+    const balance = starting + realized;
+
     res.json({
       status: {
         ok: true,
@@ -43,6 +48,14 @@ app.get('/api/status', async (req, res) => {
       },
       openTrade,
       ledgerSummary: summary,
+      balance: { starting, realized, balance },
+      paperTrading: {
+        stakePct: CONFIG.paperTrading.stakePct,
+        minTradeUsd: CONFIG.paperTrading.minTradeUsd,
+        maxTradeUsd: CONFIG.paperTrading.maxTradeUsd,
+        stopLossPct: CONFIG.paperTrading.stopLossPct,
+        flipOnProbabilityFlip: CONFIG.paperTrading.flipOnProbabilityFlip
+      },
       // Very simple live runtime snapshot (set by index.js)
       runtime: globalThis.__uiStatus ?? null
     });
