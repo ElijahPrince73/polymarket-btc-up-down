@@ -63,14 +63,20 @@ export const CONFIG = {
     edgeLate: Number(process.env.EDGE_LATE) || 0.18,
     
     // Exit settings
-    // NOTE: we do dynamic exits (no fixed TP/SL) but keep env vars for compatibility.
+    // Stop loss is enabled for Polymarket paper trades.
+    // Example: 0.25 => cut the trade if it loses 25% of contractSize.
+    stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.25,
+    // Take profit remains unused for now.
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08, // unused
-    stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.05,     // unused
 
     // Dynamic exit: close when opposite side becomes more likely.
     // Example: if you're in UP and modelDown >= modelUp + exitFlipMargin AND modelDown >= exitFlipMinProb → exit.
     exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.55,
     exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.03,
+
+    // When a probability flip happens, optionally close and immediately open the other side.
+    flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "true").toLowerCase() === "true",
+    flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 60,
     
     // Market quality filters
     minLiquidity: Number(process.env.MIN_LIQUIDITY) || 1000,

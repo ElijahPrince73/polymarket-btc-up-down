@@ -4,6 +4,7 @@
 
 ### 2026-02-03
 - UI: Status section switched to a 2-column key/value layout for readability.
+- Paper trading: added stop loss (STOP_LOSS_PCT) and optional flip-on-probability-flip (FLIP_ON_PROB_FLIP).
 - Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
 - Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
 - Added safety guards: refuse invalid open trades (entryPrice<=0 / bad shares) and sanity-close corrupted open trades.

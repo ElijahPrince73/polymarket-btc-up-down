@@ -5,6 +5,7 @@ import { loadLedger, addTrade, updateTrade, getOpenTrade as ledgerGetOpenTrade, 
 export class Trader {
   constructor() {
     this.openTrade = null;
+    this.lastFlipAtMs = 0;
   }
 
   async initialize() {
@@ -135,6 +136,23 @@ export class Trader {
       const trade = this.openTrade;
       let shouldExit = false;
       let exitReason = "";
+      let shouldFlip = false;
+
+      // Current mark-to-market PnL (for stop loss)
+      const curPx = signals.polyPrices?.[trade.side] ?? null;
+      if (curPx !== null) {
+        const sharesNow = (typeof trade.shares === "number" && Number.isFinite(trade.shares))
+          ? trade.shares
+          : (trade.entryPrice > 0 ? trade.contractSize / trade.entryPrice : 0);
+        const valueNow = sharesNow * curPx;
+        const pnlNow = valueNow - trade.contractSize;
+        const stopLossPct = CONFIG.paperTrading.stopLossPct ?? 0.25;
+        const stopLossAmount = -Math.abs(trade.contractSize * stopLossPct);
+        if (pnlNow <= stopLossAmount) {
+          shouldExit = true;
+          exitReason = "Stop Loss";
+        }
+      }
 
       // Exit when the other side becomes more likely to complete.
       const upP = typeof signals.modelUp === "number" ? signals.modelUp : null;
@@ -150,9 +168,18 @@ export class Trader {
         opposingMoreLikely = (upP >= minProb) && (upP >= downP + margin);
       }
 
-      if (opposingMoreLikely) {
+      if (!shouldExit && opposingMoreLikely) {
         shouldExit = true;
         exitReason = "Probability Flip";
+
+        const flipEnabled = CONFIG.paperTrading.flipOnProbabilityFlip ?? true;
+        const cooldownMs = (CONFIG.paperTrading.flipCooldownSeconds ?? 60) * 1000;
+        const now = Date.now();
+
+        // only flip if we can still enter and not too late, and cooldown passed
+        if (flipEnabled && canEnter && !isTooLateToEnter && (now - this.lastFlipAtMs >= cooldownMs)) {
+          shouldFlip = true;
+        }
       }
 
       // Exit at end of candle
@@ -165,6 +192,42 @@ export class Trader {
         const exitPrice = signals.polyPrices?.[trade.side] ?? null;
         if (exitPrice !== null) {
           await this.closeTrade(trade, exitPrice, exitReason);
+
+          // Optional flip: immediately open the other side
+          if (shouldFlip) {
+            const newSide = trade.side === "UP" ? "DOWN" : "UP";
+            const entryPrice = signals.polyPrices?.[newSide] ?? null;
+
+            const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.001;
+            const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;
+            if (typeof entryPrice === "number" && Number.isFinite(entryPrice) && entryPrice >= minPoly && entryPrice <= maxPoly && !isLowLiquidity && !isLowVolume) {
+              const shares = entryPrice > 0 ? (CONFIG.paperTrading.contractSize / entryPrice) : null;
+              if (shares !== null && Number.isFinite(shares) && shares > 0) {
+                const flipped = {
+                  id: Date.now().toString() + Math.random().toString(36).substring(2, 8),
+                  timestamp: new Date().toISOString(),
+                  marketSlug,
+                  side: newSide,
+                  instrument: "POLY",
+                  entryPrice,
+                  shares,
+                  contractSize: CONFIG.paperTrading.contractSize,
+                  status: "OPEN",
+                  entryTime: new Date().toISOString(),
+                  exitPrice: null,
+                  exitTime: null,
+                  pnl: 0,
+                  entryPhase: signals.rec?.phase ?? "MID",
+                  entryReason: "Flip"
+                };
+
+                await addTrade(flipped);
+                this.openTrade = flipped;
+                this.lastFlipAtMs = Date.now();
+                console.log(`🔁 FLIP OPENED (POLY): ${newSide} @ ${(entryPrice * 100).toFixed(2)}¢ | $${CONFIG.paperTrading.contractSize}`);
+              }
+            }
+          }
         }
       }
     }
