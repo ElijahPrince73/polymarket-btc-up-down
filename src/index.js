@@ -299,7 +299,13 @@ async function startApp() {
 
     // --- Console UI Rendering ---
     const vwapSlopeLabel = indicatorsData.vwapSlope === null ? "-" : indicatorsData.vwapSlope > 0 ? "UP" : indicatorsData.vwapSlope < 0 ? "DOWN" : "FLAT";
-    const macdLabel = indicatorsData.macd?.hist === null ? "-" : indicatorsData.macd.hist < 0 ? (indicatorsData.macd.histDelta !== null && indicatorsData.macd.histDelta < 0 ? "bearish (expanding)" : "bearish") : (indicatorsData.macd.histDelta !== null && indicatorsData.macd.histDelta > 0 ? "bullish (expanding)" : "bullish");
+    const macdHist = indicatorsData.macd?.hist ?? null;
+    const macdHistDelta = indicatorsData.macd?.histDelta ?? null;
+    const macdLabel = (macdHist === null || macdHist === undefined)
+      ? "-"
+      : (macdHist < 0
+          ? ((macdHistDelta !== null && macdHistDelta !== undefined && macdHistDelta < 0) ? "bearish (expanding)" : "bearish")
+          : ((macdHistDelta !== null && macdHistDelta !== undefined && macdHistDelta > 0) ? "bullish (expanding)" : "bullish"));
     const lastCandle = klines1m.length ? klines1m[klines1m.length - 1] : null;
     const lastClose = lastCandle?.close ?? null;
     const macdNarrative = narrativeFromSign(indicatorsData.macd?.hist ?? null);
