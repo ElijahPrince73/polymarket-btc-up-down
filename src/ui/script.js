@@ -43,8 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `<a href="${pmUrl}" target="_blank" rel="noreferrer">${pmUrl}</a><br/>`
                     : `Polymarket URL: N/A<br/>`;
 
+                const cc = (rt.candleCount != null) ? rt.candleCount : 0;
                 statusMessage.innerHTML = linkLine +
-                    `Market: ${rt.marketSlug || 'N/A'} | Time left: ${Math.max(0, rt.timeLeftMin).toFixed(2)}m | BTC: ${btc} | Poly UP: ${polyUp} / DOWN: ${polyDown} | ${rt.narrative || 'N/A'} (UP ${up} / DOWN ${down})`;
+                    `Market: ${rt.marketSlug || 'N/A'} | Time left: ${Math.max(0, rt.timeLeftMin).toFixed(2)}m | BTC: ${btc} | Candles(1m): ${cc} | Poly UP: ${polyUp} / DOWN: ${polyDown} | ${rt.narrative || 'N/A'} (UP ${up} / DOWN ${down})`;
             }
 
             if (statusData.openTrade) {

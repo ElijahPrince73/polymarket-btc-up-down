@@ -90,6 +90,9 @@ export const CONFIG = {
     
     // Time filters
     noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 2,
+
+    // Require enough 1m candles before allowing entries (helps avoid 50/50 startup)
+    minCandlesForEntry: Number(process.env.MIN_CANDLES_FOR_ENTRY) || 30,
     
     // Forced entries OFF by default
     forcedEntriesEnabled: (process.env.FORCED_ENTRIES || "false").toLowerCase() === "true"

@@ -37,6 +37,10 @@ export class Trader {
   async processSignals(signals, klines1m) {
     if (!CONFIG.paperTrading.enabled) return;
 
+    const candleCount = Array.isArray(klines1m) ? klines1m.length : 0;
+    const minCandlesForEntry = CONFIG.paperTrading.minCandlesForEntry ?? 30;
+    const indicatorsReady = candleCount >= minCandlesForEntry;
+
     // IMPORTANT: We paper-trade the Polymarket contract, not BTC spot.
     // BTC price/klines are only used for generating the signal.
     const side = signals.rec?.side;
@@ -66,6 +70,12 @@ export class Trader {
     const isLowVolume = isLowVolumeAbsolute || isLowVolumeRelative;
 
     // --- ENTRY ---
+    // Wait until indicators are warmed up (enough candles)
+    if (!indicatorsReady) {
+      // Still allow exits below.
+      return;
+    }
+
     // No-trade if volume is below threshold(s)
     if (!this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
       const { phase, edge } = signals.rec;

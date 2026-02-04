@@ -281,6 +281,7 @@ async function startApp() {
       narrative: predictNarrative,
       polyUp: polyPrices.UP,
       polyDown: polyPrices.DOWN,
+      candleCount: klines1m?.length ?? 0,
       lastUpdate: new Date().toISOString()
     };
 
