@@ -2,6 +2,9 @@
 
 ## CHANGELOG
 
+### 2026-02-04
+- Ledger: reset paper trading ledger to defaults (recent trades cleared). A backup JSON is saved in paper_trading/.
+
 ### 2026-02-03
 - UI: Status section switched to a 2-column key/value layout for readability.
 - Paper trading: added stop loss (STOP_LOSS_PCT) and optional flip-on-probability-flip (FLIP_ON_PROB_FLIP).
