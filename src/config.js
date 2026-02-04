@@ -62,29 +62,29 @@ export const CONFIG = {
     contractSize: Number(process.env.PAPER_CONTRACT_SIZE) || 100,
     
     // Thresholds (higher = more hesitation)
-    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.60,
-    minProbMid: Number(process.env.MIN_PROB_MID) || 0.65,
+    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.62,
+    minProbMid: Number(process.env.MIN_PROB_MID) || 0.66,
     minProbLate: Number(process.env.MIN_PROB_LATE) || 0.70,
     
-    edgeEarly: Number(process.env.EDGE_EARLY) || 0.08,
-    edgeMid: Number(process.env.EDGE_MID) || 0.12,
+    edgeEarly: Number(process.env.EDGE_EARLY) || 0.10,
+    edgeMid: Number(process.env.EDGE_MID) || 0.14,
     edgeLate: Number(process.env.EDGE_LATE) || 0.18,
     
     // Exit settings
     // Stop loss is enabled for Polymarket paper trades.
     // Example: 0.25 => cut the trade if it loses 25% of contractSize.
-    stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.25,
+    stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.20,
     // Take profit remains unused for now.
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08, // unused
 
     // Dynamic exit: close when opposite side becomes more likely.
     // Example: if you're in UP and modelDown >= modelUp + exitFlipMargin AND modelDown >= exitFlipMinProb → exit.
-    exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.55,
-    exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.03,
+    exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.60,
+    exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.06,
 
     // When a probability flip happens, optionally close and immediately open the other side.
     flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "true").toLowerCase() === "true",
-    flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 60,
+    flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 180,
     
     // Market quality filters
     minLiquidity: Number(process.env.MIN_LIQUIDITY) || 1000,
@@ -98,9 +98,9 @@ export const CONFIG = {
     minVolumeRatio: Number(process.env.MIN_VOLUME_RATIO) || 0,
 
     // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
-    // Example: 0.001 = 0.10¢
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.001,
-    maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.999,
+    // Example: 0.02 = 2¢
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.02,
+    maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
     
     // Time filters
     noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 2,

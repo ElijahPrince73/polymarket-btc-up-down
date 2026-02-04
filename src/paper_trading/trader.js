@@ -83,8 +83,17 @@ export class Trader {
     const poly = signals.polyMarketSnapshot;
     const spreadUp = poly?.orderbook?.up?.spread;
     const spreadDown = poly?.orderbook?.down?.spread;
-    const isLowLiquidity = (spreadUp !== null && spreadUp > CONFIG.paperTrading.maxSpread) ||
-                           (spreadDown !== null && spreadDown > CONFIG.paperTrading.maxSpread);
+
+    const hasBadSpread = (spreadUp !== null && spreadUp > CONFIG.paperTrading.maxSpread) ||
+                         (spreadDown !== null && spreadDown > CONFIG.paperTrading.maxSpread);
+
+    const liquidityNum = signals.market?.liquidityNum ?? null;
+    const minLiquidity = CONFIG.paperTrading.minLiquidity ?? 0;
+    const hasLowLiquidity = (typeof liquidityNum === "number" && Number.isFinite(liquidityNum))
+      ? (liquidityNum < minLiquidity)
+      : false;
+
+    const isLowLiquidity = hasBadSpread || hasLowLiquidity;
 
     const isTooLateToEnter = timeLeftMin < CONFIG.paperTrading.noEntryFinalMinutes;
 
@@ -102,8 +111,17 @@ export class Trader {
     // Wait until indicators are warmed up (enough candles)
     const canEnter = indicatorsReady;
 
+    // Require core indicators to be populated (prevents 50/50 / undefined warm states)
+    const ind = signals.indicators ?? {};
+    const hasRsi = typeof ind.rsiNow === "number" && Number.isFinite(ind.rsiNow);
+    const hasVwap = typeof ind.vwapNow === "number" && Number.isFinite(ind.vwapNow);
+    const hasVwapSlope = typeof ind.vwapSlope === "number" && Number.isFinite(ind.vwapSlope);
+    const hasMacd = typeof ind.macdHist === "number" && Number.isFinite(ind.macdHist);
+    const hasHeiken = typeof ind.heikenColor === "string" && ind.heikenColor.length > 0 && typeof ind.heikenCount === "number" && Number.isFinite(ind.heikenCount);
+    const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
+
     // No-trade if volume is below threshold(s)
-    if (canEnter && !this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
+    if (canEnter && indicatorsPopulated && !this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds
