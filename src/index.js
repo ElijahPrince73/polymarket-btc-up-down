@@ -241,11 +241,21 @@ async function startApp() {
       indicatorsData.volumeAvg = null;
     }
     
-    // Guard: when indicators aren't ready yet (startup), ensure required fields exist.
-    if (!indicatorsData.macd) indicatorsData.macd = { hist: null, histDelta: null };
+    // Normalize indicator names for the engines.
+    const engineInputs = {
+      price: currentPrice,
+      vwap: indicatorsData.vwapNow ?? null,
+      vwapSlope: indicatorsData.vwapSlope ?? null,
+      rsi: indicatorsData.rsiNow ?? null,
+      rsiSlope: indicatorsData.rsiSlope ?? null,
+      macd: indicatorsData.macd ?? null,
+      heikenColor: indicatorsData.heikenColor ?? null,
+      heikenCount: indicatorsData.heikenCount ?? 0,
+      failedVwapReclaim: indicatorsData.failedVwapReclaim ?? false
+    };
 
-    const regimeInfo = detectRegime({ price: currentPrice, ...indicatorsData });
-    const scored = scoreDirection({ price: currentPrice, ...indicatorsData });
+    const regimeInfo = detectRegime({ ...engineInputs, vwapDist: indicatorsData.vwapDist ?? null, vwapCrossCount: indicatorsData.vwapCrossCount ?? null });
+    const scored = scoreDirection(engineInputs);
     const timeAware = applyTimeAwareness(scored.rawUp, timeLeftMin, CONFIG.candleWindowMinutes);
     const marketUp = polySnapshot.ok ? polySnapshot.prices?.up : null;   // cents (buy)
     const marketDown = polySnapshot.ok ? polySnapshot.prices?.down : null; // cents (buy)
