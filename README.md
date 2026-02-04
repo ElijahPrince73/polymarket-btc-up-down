@@ -1,5 +1,17 @@
 # Polymarket BTC 15m Assistant
 
+## CHANGELOG
+
+### 2026-02-03
+- Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
+- Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
+- Added safety guards: refuse invalid open trades (entryPrice<=0 / bad shares) and sanity-close corrupted open trades.
+- Added dynamic exit on probability flip (configurable `EXIT_FLIP_MIN_PROB`, `EXIT_FLIP_MARGIN`).
+- Added entry gating: require `MIN_CANDLES_FOR_ENTRY` candles before entering trades.
+- UI improvements: Polymarket market link, recent trades table (newest first), and timestamps.
+- Stability: main loop try/catch, safer MACD handling, REST throttling/caching.
+
+
 A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 15-minute** markets.
 
 It combines:
