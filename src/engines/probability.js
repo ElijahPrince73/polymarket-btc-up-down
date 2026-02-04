@@ -31,14 +31,17 @@ export function scoreDirection(inputs) {
     if (rsi < 45 && rsiSlope < 0) down += 2;
   }
 
-  if (macd?.hist !== null && macd?.histDelta !== null) {
+  // MACD can be null/undefined during startup. Only use it when fully present.
+  if (macd && macd.hist !== null && macd.hist !== undefined && macd.histDelta !== null && macd.histDelta !== undefined) {
     const expandingGreen = macd.hist > 0 && macd.histDelta > 0;
     const expandingRed = macd.hist < 0 && macd.histDelta < 0;
     if (expandingGreen) up += 2;
     if (expandingRed) down += 2;
 
-    if (macd.macd > 0) up += 1;
-    if (macd.macd < 0) down += 1;
+    if (typeof macd.macd === "number") {
+      if (macd.macd > 0) up += 1;
+      if (macd.macd < 0) down += 1;
+    }
   }
 
   if (heikenColor) {

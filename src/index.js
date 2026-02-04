@@ -172,6 +172,7 @@ async function startApp() {
   }
 
   while (true) {
+    try {
     const timing = getCandleWindowTiming(CONFIG.candleWindowMinutes);
     const timeLeftMin = timing.remainingMinutes;
 
@@ -348,6 +349,10 @@ async function startApp() {
     ].filter(Boolean).join("\n") + "\n");
 
     prevCurrentPrice = currentPrice;
+    } catch (err) {
+      console.error("Loop error:", err);
+      await sleep(1000);
+    }
   }
 }
 
