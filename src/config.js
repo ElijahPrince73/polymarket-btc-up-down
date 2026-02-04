@@ -62,13 +62,13 @@ export const CONFIG = {
     contractSize: Number(process.env.PAPER_CONTRACT_SIZE) || 100,
     
     // Thresholds (higher = more hesitation)
-    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.62,
-    minProbMid: Number(process.env.MIN_PROB_MID) || 0.66,
-    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.70,
+    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.60,
+    minProbMid: Number(process.env.MIN_PROB_MID) || 0.64,
+    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.68,
     
-    edgeEarly: Number(process.env.EDGE_EARLY) || 0.10,
-    edgeMid: Number(process.env.EDGE_MID) || 0.14,
-    edgeLate: Number(process.env.EDGE_LATE) || 0.18,
+    edgeEarly: Number(process.env.EDGE_EARLY) || 0.08,
+    edgeMid: Number(process.env.EDGE_MID) || 0.12,
+    edgeLate: Number(process.env.EDGE_LATE) || 0.16,
     
     // Exit settings
     // Stop loss is enabled for Polymarket paper trades.
@@ -79,8 +79,8 @@ export const CONFIG = {
 
     // Dynamic exit: close when opposite side becomes more likely.
     // Example: if you're in UP and modelDown >= modelUp + exitFlipMargin AND modelDown >= exitFlipMinProb → exit.
-    exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.60,
-    exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.06,
+    exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.58,
+    exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.05,
 
     // When a probability flip happens, optionally close and immediately open the other side.
     flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "true").toLowerCase() === "true",
@@ -98,8 +98,8 @@ export const CONFIG = {
     minVolumeRatio: Number(process.env.MIN_VOLUME_RATIO) || 0,
 
     // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
-    // Example: 0.02 = 2¢
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.02,
+    // Example: 0.01 = 1¢
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.01,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
     
     // Time filters
