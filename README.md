@@ -3,6 +3,7 @@
 ## CHANGELOG
 
 ### 2026-02-03
+- UI: Status section switched to a 2-column key/value layout for readability.
 - Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
 - Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
 - Added safety guards: refuse invalid open trades (entryPrice<=0 / bad shares) and sanity-close corrupted open trades.

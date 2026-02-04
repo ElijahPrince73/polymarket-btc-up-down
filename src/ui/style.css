@@ -38,6 +38,32 @@ h1, h2 {
     padding-bottom: 5px;
 }
 
+/* Simple 2-column key/value table */
+.kv-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.kv-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: top;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+}
+
+.kv-table td.k {
+    width: 180px;
+    color: #333;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.kv-table td.v {
+    color: #111;
+    word-break: break-word;
+}
+
 #open-trade, #ledger-summary {
     font-family: 'Courier New', Courier, monospace;
     white-space: pre-wrap;

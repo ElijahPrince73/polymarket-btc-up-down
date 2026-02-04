@@ -39,13 +39,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const polyUp = (rt.polyUp != null) ? (Number(rt.polyUp) * 100).toFixed(2) + '¢' : 'N/A';
                 const polyDown = (rt.polyDown != null) ? (Number(rt.polyDown) * 100).toFixed(2) + '¢' : 'N/A';
                 const pmUrl = rt.marketSlug ? `https://polymarket.com/market/${rt.marketSlug}` : null;
-                const linkLine = pmUrl
-                    ? `<a href="${pmUrl}" target="_blank" rel="noreferrer">${pmUrl}</a><br/>`
-                    : `Polymarket URL: N/A<br/>`;
-
                 const cc = (rt.candleCount != null) ? rt.candleCount : 0;
-                statusMessage.innerHTML = linkLine +
-                    `Market: ${rt.marketSlug || 'N/A'} | Time left: ${Math.max(0, rt.timeLeftMin).toFixed(2)}m | BTC: ${btc} | Candles(1m): ${cc} | Poly UP: ${polyUp} / DOWN: ${polyDown} | ${rt.narrative || 'N/A'} (UP ${up} / DOWN ${down})`;
+
+                const timeLeft = (rt.timeLeftMin != null)
+                    ? `${Math.floor(Math.max(0, rt.timeLeftMin))}m ${Math.floor((Math.max(0, rt.timeLeftMin) % 1) * 60)}s`
+                    : 'N/A';
+
+                const rows = [
+                    ['Polymarket URL', pmUrl ? `<a href="${pmUrl}" target="_blank" rel="noreferrer">${pmUrl}</a>` : 'N/A'],
+                    ['Market', rt.marketSlug || 'N/A'],
+                    ['Time left', timeLeft],
+                    ['BTC', btc],
+                    ['Poly UP / DOWN', `${polyUp} / ${polyDown}`],
+                    ['Model', `${rt.narrative || 'N/A'} (UP ${up} / DOWN ${down})`],
+                    ['Candles (1m)', String(cc)]
+                ];
+
+                statusMessage.innerHTML = `<table class="kv-table"><tbody>` +
+                    rows.map(([k, v]) => `<tr><td class="k">${k}</td><td class="v">${v}</td></tr>`).join('') +
+                    `</tbody></table>`;
             }
 
             if (statusData.openTrade) {
