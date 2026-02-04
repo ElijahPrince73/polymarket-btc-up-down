@@ -146,11 +146,35 @@ async function startApp() {
   };
 
   const chainlinkStream = startChainlinkPriceStream({ onUpdate: pushChainlinkTick });
+
   // Prime candles with an initial REST fetch so indicators can start without WS.
   try {
     const restTick = await fetchChainlinkBtcUsd();
     if (restTick?.price) pushChainlinkTick({ price: restTick.price, updatedAt: restTick.updatedAt ?? Date.now() });
   } catch { /* ignore */ }
+
+  // --- Option B: Backfill 1m candles from exchange REST on startup ---
+  // This avoids waiting for new Chainlink ticks to build enough history.
+  // We use the configured klineProvider (Kraken REST by default) and then continue updating candles from Chainlink ticks.
+  let seededFromRest = false;
+  try {
+    const seed = await klineProvider.fetchKlines({ interval: "1m", limit: 240 });
+    if (Array.isArray(seed) && seed.length >= 30) {
+      chainlinkCandles1m.splice(0, chainlinkCandles1m.length, ...seed.map((c) => ({
+        openTime: c.openTime,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: 0,
+        closeTime: c.closeTime
+      })));
+      seededFromRest = true;
+      console.log(`Seeded 1m candles from REST: ${chainlinkCandles1m.length}`);
+    }
+  } catch (e) {
+    console.warn(`REST candle seed failed (continuing with tick-built candles): ${e.message}`);
+  }
   const polyStream = startPolymarketChainlinkPriceStream({});
 
   // Start UI server
@@ -173,6 +197,26 @@ async function startApp() {
 
   while (true) {
     try {
+    // If we couldn't seed at boot and candles are still empty, attempt a one-time seed.
+    if (!seededFromRest && chainlinkCandles1m.length < 30) {
+      try {
+        const seed = await klineProvider.fetchKlines({ interval: "1m", limit: 240 });
+        if (Array.isArray(seed) && seed.length >= 30) {
+          chainlinkCandles1m.splice(0, chainlinkCandles1m.length, ...seed.map((c) => ({
+            openTime: c.openTime,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+            volume: 0,
+            closeTime: c.closeTime
+          })));
+          seededFromRest = true;
+          console.log(`Seeded 1m candles from REST (late): ${chainlinkCandles1m.length}`);
+        }
+      } catch { /* ignore */ }
+    }
+
     const timing = getCandleWindowTiming(CONFIG.candleWindowMinutes);
     const timeLeftMin = timing.remainingMinutes;
 

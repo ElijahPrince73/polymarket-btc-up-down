@@ -9,6 +9,7 @@
 - Paper trading: close open trades on Polymarket market rollover (prevents stuck open trades when slug changes).
 - Strategy tuning: avoid extreme Poly prices (MIN_POLY_PRICE/MAX_POLY_PRICE), tighten entry thresholds, and reduce flip churn (EXIT_FLIP_* + cooldown).
 - Safety: require indicators to be populated before allowing entries (prevents trading during 50/50 / undefined indicator warm states).
+- Startup: backfill 1m candles from REST (Kraken) so indicators are ready immediately (Option B).
 - Paper trading: bankroll-based position sizing (STARTING_BALANCE, STAKE_PCT, MIN_TRADE_USD, MAX_TRADE_USD).
 - Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
 - Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
