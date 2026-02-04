@@ -173,6 +173,16 @@ export class Trader {
       let exitReason = "";
       let shouldFlip = false;
 
+      // If the Polymarket market rolled to a new slug, close the old trade so it can't get "stuck".
+      // Note: we use the current market's contract price as a best-effort mark.
+      if (trade.marketSlug && marketSlug && trade.marketSlug !== marketSlug) {
+        const exitPrice = signals.polyPrices?.[trade.side] ?? null;
+        if (exitPrice !== null) {
+          await this.closeTrade(trade, exitPrice, "Market Rollover");
+        }
+        return;
+      }
+
       // Current mark-to-market PnL (for stop loss)
       const curPx = signals.polyPrices?.[trade.side] ?? null;
       if (curPx !== null) {
