@@ -14,7 +14,7 @@
 - Safety: require indicators to be populated before allowing entries (prevents trading during 50/50 / undefined indicator warm states).
 - Startup: backfill 1m candles from REST (Kraken) so indicators are ready immediately (Option B).
 - Tuning: loosened entry thresholds slightly to increase trade frequency (while keeping quality filters).
-- Tuning: lowered MIN_POLY_PRICE default to 0.5¢ to allow trades when markets are priced under 1¢.
+- Tuning: lowered MIN_POLY_PRICE default to 0.2¢ to allow trades when markets are priced under 1¢.
 - Paper trading: bankroll-based position sizing (STARTING_BALANCE, STAKE_PCT, MIN_TRADE_USD, MAX_TRADE_USD).
 - Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
 - Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
