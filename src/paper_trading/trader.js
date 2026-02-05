@@ -84,13 +84,16 @@ export class Trader {
     const timeLeftMin = signals.timeLeftMin;
     const marketSlug = signals.market?.slug || "unknown";
 
-    // If we are not in a trade and the model is not telling us to ENTER, we can
-    // short-circuit (but still keep exits working elsewhere).
-    if (!this.openTrade && action !== "ENTER") {
+    // Rec gating: strict requires explicit ENTER; loose allows entry if thresholds hit.
+    const recGating = String(CONFIG.paperTrading.recGating || "loose");
+    const strictRec = recGating === "strict";
+
+    // If we are not in a trade and strict gating is enabled, short-circuit unless Rec=ENTER.
+    if (!this.openTrade && strictRec && action !== "ENTER") {
       this.lastEntryStatus = {
         at: new Date().toISOString(),
         eligible: false,
-        blockers: [`Rec=${action}`]
+        blockers: [`Rec=${action} (strict)`]
       };
       return;
     }
@@ -158,7 +161,8 @@ export class Trader {
     if (!canEnter) blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
     if (!indicatorsPopulated) blockers.push("Indicators not ready");
     if (this.openTrade) blockers.push("Trade already open");
-    if (signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"}`);
+    if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
+    if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
     if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m)`);
     if (isLowLiquidity) blockers.push("Low liquidity / high spread");
     if (isLowVolume) blockers.push("Low volume");
@@ -190,8 +194,11 @@ export class Trader {
       blockers
     };
 
+    const recAction = signals.rec?.action || "NONE";
+    const wantsEnter = (recAction === "ENTER") || !strictRec;
+
     // No-trade if volume is below threshold(s)
-    if (canEnter && indicatorsPopulated && !this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
+    if (canEnter && indicatorsPopulated && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds

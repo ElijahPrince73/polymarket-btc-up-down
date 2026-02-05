@@ -20,6 +20,7 @@
 - Fix: entry debug reports Rec=HOLD/NONE when strategy isn't signaling an entry.
 - UI: status/trade fetch errors now display the actual error message (easier debugging).
 - Fix: UI no longer crashes due to entryDbg variable initialization order.
+- Trading: loosened rec gating (REC_GATING=loose default) so entries can occur when thresholds hit even if Rec!=ENTER.
 - Paper trading: bankroll-based position sizing (STARTING_BALANCE, STAKE_PCT, MIN_TRADE_USD, MAX_TRADE_USD).
 - Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
 - Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).

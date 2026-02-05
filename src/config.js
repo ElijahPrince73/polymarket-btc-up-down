@@ -108,6 +108,11 @@ export const CONFIG = {
     // Require enough 1m candles before allowing entries (helps avoid 50/50 startup)
     minCandlesForEntry: Number(process.env.MIN_CANDLES_FOR_ENTRY) || 30,
     
+    // Rec gating controls whether we require the engine to explicitly say ENTER.
+    // - strict: must be Rec=ENTER
+    // - loose: allow entry if thresholds hit, even when Rec=NO_TRADE/HOLD
+    recGating: (process.env.REC_GATING || "loose").toLowerCase(),
+
     // Forced entries OFF by default
     forcedEntriesEnabled: (process.env.FORCED_ENTRIES || "false").toLowerCase() === "true"
   },
