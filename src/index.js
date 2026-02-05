@@ -166,7 +166,7 @@ async function startApp() {
         high: c.high,
         low: c.low,
         close: c.close,
-        volume: 0,
+        volume: (typeof c.volume === "number" && Number.isFinite(c.volume)) ? c.volume : 0,
         closeTime: c.closeTime
       })));
       seededFromRest = true;

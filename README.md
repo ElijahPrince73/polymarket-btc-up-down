@@ -13,6 +13,7 @@
 - Strategy tuning: avoid extreme Poly prices (MIN_POLY_PRICE/MAX_POLY_PRICE), tighten entry thresholds, and reduce flip churn (EXIT_FLIP_* + cooldown).
 - Safety: require indicators to be populated before allowing entries (prevents trading during 50/50 / undefined indicator warm states).
 - Startup: backfill 1m candles from REST (Kraken) so indicators are ready immediately (Option B).
+- Indicators: VWAP now falls back to an unweighted typical-price average when volume is unavailable (prevents perpetual "Indicators not ready" on Chainlink candles).
 - Tuning: loosened entry thresholds slightly to increase trade frequency (while keeping quality filters).
 - Tuning: lowered MIN_POLY_PRICE default to 0.2¢ to allow trades when markets are priced under 1¢.
 - UI: added "Why no entry?" debug line showing the current entry blockers.
