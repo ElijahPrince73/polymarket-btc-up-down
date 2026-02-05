@@ -5,7 +5,7 @@ import cors from 'cors';
 
 import { CONFIG } from '../config.js';
 import { initializeLedger, getLedger, recalculateSummary } from '../paper_trading/ledger.js'; // To fetch trade data and summary
-import { getOpenTrade } from '../paper_trading/trader.js'; // To get current open trade status
+import { getOpenTrade, getTraderInstance } from '../paper_trading/trader.js'; // To get current open trade status
 
 // Use __dirname polyfill for ES modules
 import { fileURLToPath } from 'url';
@@ -34,6 +34,8 @@ app.get('/api/status', async (req, res) => {
 
     const ledgerData = getLedger();
     const openTrade = getOpenTrade();
+    const trader = getTraderInstance?.() ?? null;
+    const entryDebug = trader?.lastEntryStatus ?? null;
 
     const summary = ledgerData.summary ?? recalculateSummary(ledgerData.trades ?? []);
 
@@ -47,6 +49,7 @@ app.get('/api/status', async (req, res) => {
         updatedAt: new Date().toISOString()
       },
       openTrade,
+      entryDebug,
       ledgerSummary: summary,
       balance: { starting, realized, balance },
       paperTrading: {

@@ -45,6 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `${Math.floor(Math.max(0, rt.timeLeftMin))}m ${Math.floor((Math.max(0, rt.timeLeftMin) % 1) * 60)}s`
                     : 'N/A';
 
+                const entryReason = entryDbg
+                    ? (entryDbg.eligible
+                        ? 'ELIGIBLE (will enter if Rec=ENTER + thresholds hit)'
+                        : (Array.isArray(entryDbg.blockers) && entryDbg.blockers.length
+                            ? entryDbg.blockers.join('; ')
+                            : 'Not eligible'))
+                    : 'N/A';
+
                 const rows = [
                     ['Polymarket URL', pmUrl ? `<a href="${pmUrl}" target="_blank" rel="noreferrer">${pmUrl}</a>` : 'N/A'],
                     ['Market', rt.marketSlug || 'N/A'],
@@ -52,7 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ['BTC', btc],
                     ['Poly UP / DOWN', `${polyUp} / ${polyDown}`],
                     ['Model', `${rt.narrative || 'N/A'} (UP ${up} / DOWN ${down})`],
-                    ['Candles (1m)', String(cc)]
+                    ['Candles (1m)', String(cc)],
+                    ['Why no entry?', entryReason]
                 ];
 
                 statusMessage.innerHTML = `<table class="kv-table"><tbody>` +
@@ -94,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const summary = statusData.ledgerSummary || { totalTrades: 0, wins: 0, losses: 0, totalPnL: 0, winRate: 0 };
             const bal = statusData.balance || { starting: 0, realized: 0, balance: 0 };
             const pt = statusData.paperTrading || {};
+            const entryDbg = statusData.entryDebug || null;
             ledgerSummaryDiv.textContent =
                 `Starting Balance: $${formatCurrency(bal.starting ?? 0)}\n` +
                 `Current Balance:  $${formatCurrency(bal.balance ?? 0)}\n` +

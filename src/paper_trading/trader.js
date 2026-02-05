@@ -6,6 +6,13 @@ export class Trader {
   constructor() {
     this.openTrade = null;
     this.lastFlipAtMs = 0;
+
+    // Debug / UI: why we did or didn't enter on the last check
+    this.lastEntryStatus = {
+      at: null,
+      eligible: false,
+      blockers: []
+    };
   }
 
   async initialize() {
@@ -119,6 +126,43 @@ export class Trader {
     const hasMacd = typeof ind.macdHist === "number" && Number.isFinite(ind.macdHist);
     const hasHeiken = typeof ind.heikenColor === "string" && ind.heikenColor.length > 0 && typeof ind.heikenCount === "number" && Number.isFinite(ind.heikenCount);
     const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
+
+    // Build debug blockers for UI
+    const blockers = [];
+    if (!canEnter) blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
+    if (!indicatorsPopulated) blockers.push("Indicators not ready");
+    if (this.openTrade) blockers.push("Trade already open");
+    if (signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"}`);
+    if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m)`);
+    if (isLowLiquidity) blockers.push("Low liquidity / high spread");
+    if (isLowVolume) blockers.push("Low volume");
+
+    // Price sanity blockers
+    const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.002;
+    const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.98;
+    if (!(typeof currentPolyPrice === "number") || !Number.isFinite(currentPolyPrice) || currentPolyPrice < minPoly || currentPolyPrice > maxPoly) {
+      blockers.push(`Poly price out of bounds (${(currentPolyPrice ?? NaN) * 100}¢)`);
+    }
+
+    // Threshold blockers
+    if (signals.rec?.side) {
+      const modelProb = side === "UP" ? signals.modelUp : signals.modelDown;
+      const edge = signals.rec?.edge ?? 0;
+      const phase = signals.rec?.phase;
+      let minProbReq, edgeReq;
+      if (phase === "EARLY") { minProbReq = CONFIG.paperTrading.minProbEarly; edgeReq = CONFIG.paperTrading.edgeEarly; }
+      else if (phase === "MID") { minProbReq = CONFIG.paperTrading.minProbMid; edgeReq = CONFIG.paperTrading.edgeMid; }
+      else { minProbReq = CONFIG.paperTrading.minProbLate; edgeReq = CONFIG.paperTrading.edgeLate; }
+
+      if (typeof modelProb === "number" && Number.isFinite(modelProb) && modelProb < minProbReq) blockers.push(`Prob ${modelProb.toFixed(3)} < ${minProbReq}`);
+      if ((edge || 0) < edgeReq) blockers.push(`Edge ${(edge || 0).toFixed(3)} < ${edgeReq}`);
+    }
+
+    this.lastEntryStatus = {
+      at: new Date().toISOString(),
+      eligible: blockers.length === 0,
+      blockers
+    };
 
     // No-trade if volume is below threshold(s)
     if (canEnter && indicatorsPopulated && !this.openTrade && signals.rec.action === "ENTER" && !isTooLateToEnter && !isLowLiquidity && !isLowVolume) {
