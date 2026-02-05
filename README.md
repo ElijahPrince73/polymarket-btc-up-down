@@ -5,6 +5,7 @@
 ### 2026-02-04
 - Tests: added basic node:test coverage (VWAP fallback + Trader loose-gating entry) and enabled `npm test`.
 - UI: added /api/analytics + an Analytics section (win rate, avg win/loss, profit factor, expectancy + grouped PnL).
+- UI: improved Analytics layout (overview + 4 small tables).
 - Tuning: raised MIN_POLY_PRICE default to 0.5¢ and made Stop Loss conditional on probability flip (reduces chop-outs).
 
 ### 2026-02-04

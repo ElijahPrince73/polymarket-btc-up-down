@@ -2,7 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('status-message');
     const openTradeDiv = document.getElementById('open-trade');
     const ledgerSummaryDiv = document.getElementById('ledger-summary');
-    const analyticsDiv = document.getElementById('analytics');
+
+    // Analytics elements
+    const analyticsOverviewDiv = document.getElementById('analytics-overview');
+    const analyticsByExitBody = document.getElementById('analytics-by-exit');
+    const analyticsByPhaseBody = document.getElementById('analytics-by-phase');
+    const analyticsByPriceBody = document.getElementById('analytics-by-price');
+    const analyticsByInferredBody = document.getElementById('analytics-by-inferred');
+
     const recentTradesBody = document.getElementById('recent-trades-body');
 
     // Function to format currency and percentages
@@ -138,33 +145,42 @@ document.addEventListener('DOMContentLoaded', () => {
             const pct = (n, d = 1) => (typeof n === 'number' && Number.isFinite(n)) ? (n * 100).toFixed(d) + '%' : 'N/A';
 
             const top = analytics?.overview || {};
-            const lines = [
+            analyticsOverviewDiv.textContent = [
                 `Closed Trades: ${top.closedTrades ?? 0}`,
+                `Wins / Losses: ${(top.wins ?? 0)} / ${(top.losses ?? 0)}`,
+                `Total PnL: $${fmt(top.totalPnL)}`,
                 `Win Rate: ${pct(top.winRate)}`,
                 `Avg Win: $${fmt(top.avgWin)}`,
                 `Avg Loss: $${fmt(top.avgLoss)}`,
                 `Profit Factor: ${fmt(top.profitFactor)}`,
                 `Expectancy / trade: $${fmt(top.expectancy)}`
-            ];
+            ].join('\n');
 
-            const mkGroup = (title, rows) => {
-                if (!rows || !Array.isArray(rows) || rows.length === 0) return '';
-                const body = rows
-                    .slice(0, 8)
-                    .map((r) => `${r.key}: n=${r.count}, pnl=$${fmt(r.pnl)}`)
-                    .join('\n');
-                return `\n\n${title}\n${body}`;
+            const renderGroup = (tbody, rows) => {
+                if (!tbody) return;
+                if (!rows || !Array.isArray(rows) || rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3">No data.</td></tr>';
+                    return;
+                }
+                const r = rows.slice(0, 12);
+                tbody.innerHTML = r.map((x) => {
+                    const pnl = (typeof x.pnl === 'number' && Number.isFinite(x.pnl)) ? x.pnl : 0;
+                    const cls = pnl >= 0 ? 'positive' : 'negative';
+                    return `<tr><td>${x.key}</td><td class="num">${x.count}</td><td class="num ${cls}">${fmt(pnl)}</td></tr>`;
+                }).join('');
             };
 
-            analyticsDiv.textContent =
-                lines.join('\n') +
-                mkGroup('By Exit Reason', analytics.byExitReason) +
-                mkGroup('By Entry Phase', analytics.byEntryPhase) +
-                mkGroup('By Entry Price Bucket', analytics.byEntryPriceBucket) +
-                mkGroup('By Side Inferred', analytics.bySideInferred);
+            renderGroup(analyticsByExitBody, analytics.byExitReason);
+            renderGroup(analyticsByPhaseBody, analytics.byEntryPhase);
+            renderGroup(analyticsByPriceBody, analytics.byEntryPriceBucket);
+            renderGroup(analyticsByInferredBody, analytics.bySideInferred);
         } catch (e) {
             const msg = (e && e.message) ? e.message : String(e);
-            analyticsDiv.textContent = `Error loading analytics: ${msg}`;
+            if (analyticsOverviewDiv) analyticsOverviewDiv.textContent = `Error loading analytics: ${msg}`;
+            if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByPhaseBody) analyticsByPhaseBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByPriceBody) analyticsByPriceBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByInferredBody) analyticsByInferredBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
         }
 
         // Fetch recent trades
