@@ -94,7 +94,8 @@ export const CONFIG = {
     exitFlipMinHoldSeconds: Number(process.env.EXIT_FLIP_MIN_HOLD_SECONDS) || 60,
 
     // When a probability flip happens, optionally close and immediately open the other side.
-    flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "true").toLowerCase() === "true",
+    // Default OFF (analytics showed flips were a major drag on PnL). Set FLIP_ON_PROB_FLIP=true to re-enable.
+    flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "false").toLowerCase() === "true",
     flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 180,
     
     // Market quality filters

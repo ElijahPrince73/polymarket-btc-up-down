@@ -8,6 +8,7 @@
 - UI: improved Analytics layout (overview + 4 small tables).
 - Tuning: raised MIN_POLY_PRICE default to 0.5¢ and made Stop Loss conditional on probability flip (reduces chop-outs).
 - Tuning: tightened Probability Flip exits (higher min prob/margin + min hold time) and made MID/inferred entries slightly stricter.
+- Tuning: disabled auto-flipping on Probability Flip by default (FLIP_ON_PROB_FLIP=false) to reduce churn.
 
 ### 2026-02-04
 - Ledger: reset paper trading ledger to defaults (recent trades cleared). A backup JSON is saved in paper_trading/.
