@@ -164,7 +164,7 @@ export class Trader {
     const hasRsi = typeof ind.rsiNow === "number" && Number.isFinite(ind.rsiNow);
     const hasVwap = typeof ind.vwapNow === "number" && Number.isFinite(ind.vwapNow);
     const hasVwapSlope = typeof ind.vwapSlope === "number" && Number.isFinite(ind.vwapSlope);
-    const hasMacd = typeof ind.macdHist === "number" && Number.isFinite(ind.macdHist);
+    const hasMacd = typeof ind.macd?.hist === "number" && Number.isFinite(ind.macd.hist);
     const hasHeiken = typeof ind.heikenColor === "string" && ind.heikenColor.length > 0 && typeof ind.heikenCount === "number" && Number.isFinite(ind.heikenCount);
     const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
 
