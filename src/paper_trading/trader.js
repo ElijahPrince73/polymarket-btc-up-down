@@ -79,9 +79,21 @@ export class Trader {
 
     // IMPORTANT: We paper-trade the Polymarket contract, not BTC spot.
     // BTC price/klines are only used for generating the signal.
+    const action = signals.rec?.action || "NONE";
     const side = signals.rec?.side;
     const timeLeftMin = signals.timeLeftMin;
     const marketSlug = signals.market?.slug || "unknown";
+
+    // If we are not in a trade and the model is not telling us to ENTER, we can
+    // short-circuit (but still keep exits working elsewhere).
+    if (!this.openTrade && action !== "ENTER") {
+      this.lastEntryStatus = {
+        at: new Date().toISOString(),
+        eligible: false,
+        blockers: [`Rec=${action}`]
+      };
+      return;
+    }
 
     const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
 
@@ -95,7 +107,7 @@ export class Trader {
       this.lastEntryStatus = {
         at: new Date().toISOString(),
         eligible: false,
-        blockers: entryBlockers
+        blockers: entryBlockers.length ? entryBlockers : [`Rec=${action}`]
       };
       return;
     }

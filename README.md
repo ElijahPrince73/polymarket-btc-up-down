@@ -17,6 +17,7 @@
 - Tuning: lowered MIN_POLY_PRICE default to 0.2¢ to allow trades when markets are priced under 1¢.
 - UI: added "Why no entry?" debug line showing the current entry blockers.
 - Fix: entry debug now updates even when signals are missing (so UI never shows blank blockers).
+- Fix: entry debug reports Rec=HOLD/NONE when strategy isn't signaling an entry.
 - Paper trading: bankroll-based position sizing (STARTING_BALANCE, STAKE_PCT, MIN_TRADE_USD, MAX_TRADE_USD).
 - Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
 - Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
