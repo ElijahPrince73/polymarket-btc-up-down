@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `${Math.floor(Math.max(0, rt.timeLeftMin))}m ${Math.floor((Math.max(0, rt.timeLeftMin) % 1) * 60)}s`
                     : 'N/A';
 
+                const entryDbg = statusData.entryDebug || null;
                 const entryReason = entryDbg
                     ? (entryDbg.eligible
                         ? 'ELIGIBLE (will enter if Rec=ENTER + thresholds hit)'
@@ -103,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const summary = statusData.ledgerSummary || { totalTrades: 0, wins: 0, losses: 0, totalPnL: 0, winRate: 0 };
             const bal = statusData.balance || { starting: 0, realized: 0, balance: 0 };
             const pt = statusData.paperTrading || {};
-            const entryDbg = statusData.entryDebug || null;
             ledgerSummaryDiv.textContent =
                 `Starting Balance: $${formatCurrency(bal.starting ?? 0)}\n` +
                 `Current Balance:  $${formatCurrency(bal.balance ?? 0)}\n` +
