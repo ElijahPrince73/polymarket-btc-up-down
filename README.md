@@ -3,6 +3,9 @@
 ## CHANGELOG
 
 ### 2026-02-04
+- Tests: added basic node:test coverage (VWAP fallback + Trader loose-gating entry) and enabled `npm test`.
+
+### 2026-02-04
 - Ledger: reset paper trading ledger to defaults (recent trades cleared). A backup JSON is saved in paper_trading/.
 
 ### 2026-02-03
