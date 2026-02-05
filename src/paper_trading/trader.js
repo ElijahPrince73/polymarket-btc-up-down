@@ -228,6 +228,18 @@ export class Trader {
         edgeThreshold = CONFIG.paperTrading.edgeLate;
       }
 
+      // Tighten MID entries slightly (analytics: MID was worse than EARLY)
+      if (phase === "MID") {
+        minProb += (CONFIG.paperTrading.midProbBoost ?? 0);
+        edgeThreshold += (CONFIG.paperTrading.midEdgeBoost ?? 0);
+      }
+
+      // Tighten inferred-side entries in loose mode
+      if (!strictRec && sideInferred) {
+        minProb += (CONFIG.paperTrading.inferredProbBoost ?? 0);
+        edgeThreshold += (CONFIG.paperTrading.inferredEdgeBoost ?? 0);
+      }
+
       const modelProb = side === "UP" ? signals.modelUp : signals.modelDown;
       const meetsThresholds = modelProb >= minProb && (edge || 0) >= edgeThreshold;
 
@@ -313,11 +325,16 @@ export class Trader {
       const minProb = CONFIG.paperTrading.exitFlipMinProb ?? 0.55;
       const margin = CONFIG.paperTrading.exitFlipMargin ?? 0.03;
 
+      const minHoldSec = CONFIG.paperTrading.exitFlipMinHoldSeconds ?? 0;
+      const tradeAgeSec = trade.entryTime ? ((Date.now() - new Date(trade.entryTime).getTime()) / 1000) : null;
+
       let opposingMoreLikely = false;
-      if (trade.side === "UP" && upP !== null && downP !== null) {
+      const holdOk = (tradeAgeSec === null) ? true : (tradeAgeSec >= minHoldSec);
+
+      if (holdOk && trade.side === "UP" && upP !== null && downP !== null) {
         opposingMoreLikely = (downP >= minProb) && (downP >= upP + margin);
       }
-      if (trade.side === "DOWN" && upP !== null && downP !== null) {
+      if (holdOk && trade.side === "DOWN" && upP !== null && downP !== null) {
         opposingMoreLikely = (upP >= minProb) && (upP >= downP + margin);
       }
 

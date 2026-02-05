@@ -69,6 +69,15 @@ export const CONFIG = {
     edgeEarly: Number(process.env.EDGE_EARLY) || 0.08,
     edgeMid: Number(process.env.EDGE_MID) || 0.12,
     edgeLate: Number(process.env.EDGE_LATE) || 0.16,
+
+    // Extra strictness knobs (used to improve odds without killing trade count)
+    // MID entries tend to be weaker; require a bit more strength.
+    midProbBoost: Number(process.env.MID_PROB_BOOST) || 0.02,
+    midEdgeBoost: Number(process.env.MID_EDGE_BOOST) || 0.02,
+
+    // In loose mode (rec gating ignored) when side is inferred, require stronger signals.
+    inferredProbBoost: Number(process.env.INFERRED_PROB_BOOST) || 0.03,
+    inferredEdgeBoost: Number(process.env.INFERRED_EDGE_BOOST) || 0.03,
     
     // Exit settings
     // Stop loss is enabled for Polymarket paper trades.
@@ -79,8 +88,10 @@ export const CONFIG = {
 
     // Dynamic exit: close when opposite side becomes more likely.
     // Example: if you're in UP and modelDown >= modelUp + exitFlipMargin AND modelDown >= exitFlipMinProb → exit.
-    exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.58,
-    exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.05,
+    exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.62,
+    exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.06,
+    // Avoid noisy early flips: require trade to be open at least this long before flip-exit is allowed.
+    exitFlipMinHoldSeconds: Number(process.env.EXIT_FLIP_MIN_HOLD_SECONDS) || 60,
 
     // When a probability flip happens, optionally close and immediately open the other side.
     flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "true").toLowerCase() === "true",
