@@ -120,9 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Win Rate: ${formatPercentage(summary.winRate ?? 0)}`;
 
         } catch (error) {
-            statusMessage.textContent = 'Error loading status data.';
-            openTradeDiv.innerHTML = 'Error loading trade data.';
-            ledgerSummaryDiv.innerHTML = 'Error loading summary data.';
+            const msg = (error && error.message) ? error.message : String(error);
+            statusMessage.textContent = `Error loading status data: ${msg}`;
+            openTradeDiv.textContent = `Error loading trade data: ${msg}`;
+            ledgerSummaryDiv.textContent = `Error loading summary data: ${msg}`;
             console.error('Error fetching status data:', error);
         }
 
