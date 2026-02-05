@@ -81,6 +81,7 @@ export class Trader {
     // BTC price/klines are only used for generating the signal.
     const action = signals.rec?.action || "NONE";
     let side = signals.rec?.side;
+    let sideInferred = false;
     const timeLeftMin = signals.timeLeftMin;
     const marketSlug = signals.market?.slug || "unknown";
 
@@ -109,6 +110,7 @@ export class Trader {
       const downP = typeof signals.modelDown === "number" ? signals.modelDown : null;
       if (upP !== null && downP !== null) {
         side = upP >= downP ? "UP" : "DOWN";
+        sideInferred = true;
         entryBlockers.push(`Inferred side=${side}`);
       }
     }
@@ -265,7 +267,8 @@ export class Trader {
           exitPrice: null,
           exitTime: null,
           pnl: 0,
-          entryPhase: phase
+          entryPhase: phase,
+          sideInferred
         };
         await addTrade(this.openTrade);
         const { balance } = this.getBalanceSnapshot();

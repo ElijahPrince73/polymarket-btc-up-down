@@ -26,6 +26,71 @@ if (!fs.existsSync(uiPath)) {
 }
 app.use(express.static(uiPath)); // Serve files from ./src/ui/
 
+function bucketEntryPrice(trade) {
+  const px = trade?.entryPrice;
+  if (typeof px !== 'number' || !Number.isFinite(px)) return 'unknown';
+  const cents = px * 100;
+  if (cents < 0.5) return '<0.5¢';
+  if (cents < 1) return '0.5–1¢';
+  if (cents < 2) return '1–2¢';
+  if (cents < 5) return '2–5¢';
+  if (cents < 10) return '5–10¢';
+  return '10¢+';
+}
+
+function groupSummary(trades, keyFn) {
+  const map = new Map();
+  for (const t of trades) {
+    const key = String(keyFn(t) ?? 'unknown');
+    const cur = map.get(key) || { key, count: 0, pnl: 0 };
+    cur.count += 1;
+    cur.pnl += (typeof t.pnl === 'number' && Number.isFinite(t.pnl)) ? t.pnl : 0;
+    map.set(key, cur);
+  }
+  return Array.from(map.values()).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl));
+}
+
+function computeAnalytics(allTrades) {
+  const trades = Array.isArray(allTrades) ? allTrades : [];
+  const closed = trades.filter((t) => t && t.status === 'CLOSED');
+
+  const wins = closed.filter((t) => (typeof t.pnl === 'number' && t.pnl > 0));
+  const losses = closed.filter((t) => (typeof t.pnl === 'number' && t.pnl < 0));
+
+  const sum = (arr) => arr.reduce((acc, t) => acc + (typeof t.pnl === 'number' ? t.pnl : 0), 0);
+  const totalPnL = sum(closed);
+  const winPnL = sum(wins);
+  const lossPnL = sum(losses); // negative
+
+  const avgWin = wins.length ? (winPnL / wins.length) : null;
+  const avgLoss = losses.length ? (lossPnL / losses.length) : null;
+  const winRate = closed.length ? (wins.length / closed.length) : null;
+  const profitFactor = (lossPnL !== 0) ? (winPnL / Math.abs(lossPnL)) : null;
+  const expectancy = closed.length ? (totalPnL / closed.length) : null;
+
+  return {
+    overview: {
+      closedTrades: closed.length,
+      wins: wins.length,
+      losses: losses.length,
+      totalPnL,
+      winRate,
+      avgWin,
+      avgLoss,
+      profitFactor,
+      expectancy
+    },
+    byExitReason: groupSummary(closed, (t) => t.exitReason || 'unknown'),
+    byEntryPhase: groupSummary(closed, (t) => t.entryPhase || 'unknown'),
+    byEntryPriceBucket: groupSummary(closed, (t) => bucketEntryPrice(t)),
+    bySideInferred: groupSummary(closed, (t) => {
+      if (t.sideInferred === true) return 'inferred';
+      if (t.sideInferred === false) return 'explicit';
+      return 'unknown';
+    })
+  };
+}
+
 // API endpoints for UI to fetch data
 app.get('/api/status', async (req, res) => {
   try {
@@ -76,6 +141,18 @@ app.get('/api/trades', async (req, res) => {
   } catch (error) {
     console.error("Error fetching trades:", error);
     res.status(500).json({ error: "Failed to fetch trades data." });
+  }
+});
+
+app.get('/api/analytics', async (req, res) => {
+  try {
+    await initializeLedger();
+    const ledgerData = getLedger();
+    const analytics = computeAnalytics(ledgerData.trades);
+    res.json(analytics);
+  } catch (error) {
+    console.error("Error fetching analytics:", error);
+    res.status(500).json({ error: "Failed to fetch analytics data." });
   }
 });
 

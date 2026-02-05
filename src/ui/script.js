@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('status-message');
     const openTradeDiv = document.getElementById('open-trade');
     const ledgerSummaryDiv = document.getElementById('ledger-summary');
+    const analyticsDiv = document.getElementById('analytics');
     const recentTradesBody = document.getElementById('recent-trades-body');
 
     // Function to format currency and percentages
@@ -125,6 +126,45 @@ document.addEventListener('DOMContentLoaded', () => {
             openTradeDiv.textContent = `Error loading trade data: ${msg}`;
             ledgerSummaryDiv.textContent = `Error loading summary data: ${msg}`;
             console.error('Error fetching status data:', error);
+        }
+
+        // Fetch analytics
+        try {
+            const aRes = await fetch('/api/analytics');
+            const analytics = await aRes.json();
+            if (!aRes.ok) throw new Error('analytics endpoint returned non-200');
+
+            const fmt = (n, d = 2) => (typeof n === 'number' && Number.isFinite(n)) ? n.toFixed(d) : 'N/A';
+            const pct = (n, d = 1) => (typeof n === 'number' && Number.isFinite(n)) ? (n * 100).toFixed(d) + '%' : 'N/A';
+
+            const top = analytics?.overview || {};
+            const lines = [
+                `Closed Trades: ${top.closedTrades ?? 0}`,
+                `Win Rate: ${pct(top.winRate)}`,
+                `Avg Win: $${fmt(top.avgWin)}`,
+                `Avg Loss: $${fmt(top.avgLoss)}`,
+                `Profit Factor: ${fmt(top.profitFactor)}`,
+                `Expectancy / trade: $${fmt(top.expectancy)}`
+            ];
+
+            const mkGroup = (title, rows) => {
+                if (!rows || !Array.isArray(rows) || rows.length === 0) return '';
+                const body = rows
+                    .slice(0, 8)
+                    .map((r) => `${r.key}: n=${r.count}, pnl=$${fmt(r.pnl)}`)
+                    .join('\n');
+                return `\n\n${title}\n${body}`;
+            };
+
+            analyticsDiv.textContent =
+                lines.join('\n') +
+                mkGroup('By Exit Reason', analytics.byExitReason) +
+                mkGroup('By Entry Phase', analytics.byEntryPhase) +
+                mkGroup('By Entry Price Bucket', analytics.byEntryPriceBucket) +
+                mkGroup('By Side Inferred', analytics.bySideInferred);
+        } catch (e) {
+            const msg = (e && e.message) ? e.message : String(e);
+            analyticsDiv.textContent = `Error loading analytics: ${msg}`;
         }
 
         // Fetch recent trades
