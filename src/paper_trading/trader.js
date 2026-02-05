@@ -295,6 +295,7 @@ export class Trader {
 
       // Current mark-to-market PnL (for stop loss)
       const curPx = signals.polyPrices?.[trade.side] ?? null;
+      let stopLossHit = false;
       if (curPx !== null) {
         const sharesNow = (typeof trade.shares === "number" && Number.isFinite(trade.shares))
           ? trade.shares
@@ -303,10 +304,7 @@ export class Trader {
         const pnlNow = valueNow - trade.contractSize;
         const stopLossPct = CONFIG.paperTrading.stopLossPct ?? 0.25;
         const stopLossAmount = -Math.abs(trade.contractSize * stopLossPct);
-        if (pnlNow <= stopLossAmount) {
-          shouldExit = true;
-          exitReason = "Stop Loss";
-        }
+        stopLossHit = pnlNow <= stopLossAmount;
       }
 
       // Exit when the other side becomes more likely to complete.
@@ -335,6 +333,13 @@ export class Trader {
         if (flipEnabled && canEnter && !isTooLateToEnter && (now - this.lastFlipAtMs >= cooldownMs)) {
           shouldFlip = true;
         }
+      }
+
+      // Conditional stop loss: only stop out when we are materially losing AND the model has flipped against us.
+      // This avoids getting chopped out by noise when the signal still supports the position.
+      if (!shouldExit && stopLossHit && opposingMoreLikely) {
+        shouldExit = true;
+        exitReason = "Stop Loss";
       }
 
       // Exit at end of candle

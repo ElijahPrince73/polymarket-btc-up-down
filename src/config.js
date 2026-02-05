@@ -99,7 +99,9 @@ export const CONFIG = {
 
     // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
     // Example: 0.002 = 0.2¢
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.002,
+    // Avoid "dust" Polymarket prices where spread/tick noise dominates.
+    // 0.005 = 0.5¢
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.005,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
     
     // Time filters
