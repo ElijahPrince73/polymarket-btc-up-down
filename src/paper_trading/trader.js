@@ -80,7 +80,7 @@ export class Trader {
     // IMPORTANT: We paper-trade the Polymarket contract, not BTC spot.
     // BTC price/klines are only used for generating the signal.
     const action = signals.rec?.action || "NONE";
-    const side = signals.rec?.side;
+    let side = signals.rec?.side;
     const timeLeftMin = signals.timeLeftMin;
     const marketSlug = signals.market?.slug || "unknown";
 
@@ -98,11 +98,23 @@ export class Trader {
       return;
     }
 
-    const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
-
     // Always populate entry debug, even if we can't trade this tick.
     // This helps the UI show why no trade happened.
     const entryBlockers = [];
+
+    // In loose mode, if the engine doesn't provide a side, infer it from the model probabilities.
+    // This keeps paper trading active even when rec.action is conservative.
+    if (!side && !strictRec) {
+      const upP = typeof signals.modelUp === "number" ? signals.modelUp : null;
+      const downP = typeof signals.modelDown === "number" ? signals.modelDown : null;
+      if (upP !== null && downP !== null) {
+        side = upP >= downP ? "UP" : "DOWN";
+        entryBlockers.push(`Inferred side=${side}`);
+      }
+    }
+
+    const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
+
     if (!side) entryBlockers.push("Missing side");
     if (side && (currentPolyPrice === null || currentPolyPrice === undefined)) entryBlockers.push("Missing Polymarket price");
 
