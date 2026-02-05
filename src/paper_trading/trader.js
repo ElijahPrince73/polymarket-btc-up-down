@@ -80,11 +80,25 @@ export class Trader {
     // IMPORTANT: We paper-trade the Polymarket contract, not BTC spot.
     // BTC price/klines are only used for generating the signal.
     const side = signals.rec?.side;
-    const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
     const timeLeftMin = signals.timeLeftMin;
     const marketSlug = signals.market?.slug || "unknown";
 
-    if (!side || currentPolyPrice === null) return;
+    const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
+
+    // Always populate entry debug, even if we can't trade this tick.
+    // This helps the UI show why no trade happened.
+    const entryBlockers = [];
+    if (!side) entryBlockers.push("Missing side");
+    if (side && (currentPolyPrice === null || currentPolyPrice === undefined)) entryBlockers.push("Missing Polymarket price");
+
+    if (!side || currentPolyPrice === null) {
+      this.lastEntryStatus = {
+        at: new Date().toISOString(),
+        eligible: false,
+        blockers: entryBlockers
+      };
+      return;
+    }
 
     // Market quality filters
     const poly = signals.polyMarketSnapshot;
@@ -128,7 +142,7 @@ export class Trader {
     const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
 
     // Build debug blockers for UI
-    const blockers = [];
+    const blockers = [...entryBlockers];
     if (!canEnter) blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
     if (!indicatorsPopulated) blockers.push("Indicators not ready");
     if (this.openTrade) blockers.push("Trade already open");
