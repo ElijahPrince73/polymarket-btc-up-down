@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const analyticsByPhaseBody = document.getElementById('analytics-by-phase');
     const analyticsByPriceBody = document.getElementById('analytics-by-price');
     const analyticsByInferredBody = document.getElementById('analytics-by-inferred');
+    const analyticsByTimeLeftBody = document.getElementById('analytics-by-timeleft');
+    const analyticsByProbBody = document.getElementById('analytics-by-prob');
+    const analyticsBySideBody = document.getElementById('analytics-by-side');
+    const analyticsByRecBody = document.getElementById('analytics-by-rec');
 
     const recentTradesBody = document.getElementById('recent-trades-body');
 
@@ -174,6 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
             renderGroup(analyticsByPhaseBody, analytics.byEntryPhase);
             renderGroup(analyticsByPriceBody, analytics.byEntryPriceBucket);
             renderGroup(analyticsByInferredBody, analytics.bySideInferred);
+            renderGroup(analyticsByTimeLeftBody, analytics.byEntryTimeLeftBucket);
+            renderGroup(analyticsByProbBody, analytics.byEntryProbBucket);
+            renderGroup(analyticsBySideBody, analytics.bySide);
+            renderGroup(analyticsByRecBody, analytics.byRecActionAtEntry);
         } catch (e) {
             const msg = (e && e.message) ? e.message : String(e);
             if (analyticsOverviewDiv) analyticsOverviewDiv.textContent = `Error loading analytics: ${msg}`;
@@ -181,6 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (analyticsByPhaseBody) analyticsByPhaseBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsByPriceBody) analyticsByPriceBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsByInferredBody) analyticsByInferredBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByTimeLeftBody) analyticsByTimeLeftBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByProbBody) analyticsByProbBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsBySideBody) analyticsBySideBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByRecBody) analyticsByRecBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
         }
 
         // Fetch recent trades

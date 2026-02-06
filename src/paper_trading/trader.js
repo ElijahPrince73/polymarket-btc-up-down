@@ -265,6 +265,10 @@ export class Trader {
         const shares = (entryPrice > 0) ? (contractSizeUsd / entryPrice) : null;
         if (shares === null || !Number.isFinite(shares) || shares <= 0) return;
 
+        const modelProbAtEntry = side === "UP" ? signals.modelUp : signals.modelDown;
+        const liquidityAtEntry = signals.market?.liquidityNum ?? null;
+        const spreadAtEntry = side === "UP" ? (spreadUp ?? null) : (spreadDown ?? null);
+
         this.openTrade = {
           id: Date.now().toString() + Math.random().toString(36).substring(2, 8),
           timestamp: new Date().toISOString(),
@@ -280,7 +284,15 @@ export class Trader {
           exitTime: null,
           pnl: 0,
           entryPhase: phase,
-          sideInferred
+          sideInferred,
+
+          // analytics fields (best-effort)
+          timeLeftMinAtEntry: timeLeftMin ?? null,
+          modelProbAtEntry: (typeof modelProbAtEntry === "number" && Number.isFinite(modelProbAtEntry)) ? modelProbAtEntry : null,
+          edgeAtEntry: (typeof edge === "number" && Number.isFinite(edge)) ? edge : null,
+          liquidityAtEntry: (typeof liquidityAtEntry === "number" && Number.isFinite(liquidityAtEntry)) ? liquidityAtEntry : null,
+          spreadAtEntry: (typeof spreadAtEntry === "number" && Number.isFinite(spreadAtEntry)) ? spreadAtEntry : null,
+          recActionAtEntry: signals.rec?.action ?? null
         };
         await addTrade(this.openTrade);
         const { balance } = this.getBalanceSnapshot();
@@ -338,19 +350,10 @@ export class Trader {
         opposingMoreLikely = (upP >= minProb) && (upP >= downP + margin);
       }
 
-      if (!shouldExit && opposingMoreLikely) {
-        shouldExit = true;
-        exitReason = "Probability Flip";
+      // NOTE: Probability Flip exits disabled (analytics showed they were a major drag on PnL).
+      // We still compute opposingMoreLikely because it's used by the conditional stop loss.
+      // If you want to re-enable flip exits later, restore the block that sets shouldExit here.
 
-        const flipEnabled = CONFIG.paperTrading.flipOnProbabilityFlip ?? true;
-        const cooldownMs = (CONFIG.paperTrading.flipCooldownSeconds ?? 60) * 1000;
-        const now = Date.now();
-
-        // only flip if we can still enter and not too late, and cooldown passed
-        if (flipEnabled && canEnter && !isTooLateToEnter && (now - this.lastFlipAtMs >= cooldownMs)) {
-          shouldFlip = true;
-        }
-      }
 
       // Conditional stop loss: only stop out when we are materially losing AND the model has flipped against us.
       // This avoids getting chopped out by noise when the signal still supports the position.

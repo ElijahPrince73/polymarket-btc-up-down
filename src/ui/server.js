@@ -50,6 +50,25 @@ function groupSummary(trades, keyFn) {
   return Array.from(map.values()).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl));
 }
 
+function bucketTimeLeftMin(trade) {
+  const t = trade?.timeLeftMinAtEntry;
+  if (typeof t !== 'number' || !Number.isFinite(t)) return 'unknown';
+  if (t < 2) return '<2m';
+  if (t < 5) return '2–5m';
+  if (t < 10) return '5–10m';
+  return '10m+';
+}
+
+function bucketProb(trade) {
+  const p = trade?.modelProbAtEntry;
+  if (typeof p !== 'number' || !Number.isFinite(p)) return 'unknown';
+  if (p < 0.55) return '<0.55';
+  if (p < 0.60) return '0.55–0.60';
+  if (p < 0.65) return '0.60–0.65';
+  if (p < 0.70) return '0.65–0.70';
+  return '0.70+';
+}
+
 function computeAnalytics(allTrades) {
   const trades = Array.isArray(allTrades) ? allTrades : [];
   const closed = trades.filter((t) => t && t.status === 'CLOSED');
@@ -83,6 +102,10 @@ function computeAnalytics(allTrades) {
     byExitReason: groupSummary(closed, (t) => t.exitReason || 'unknown'),
     byEntryPhase: groupSummary(closed, (t) => t.entryPhase || 'unknown'),
     byEntryPriceBucket: groupSummary(closed, (t) => bucketEntryPrice(t)),
+    byEntryTimeLeftBucket: groupSummary(closed, (t) => bucketTimeLeftMin(t)),
+    byEntryProbBucket: groupSummary(closed, (t) => bucketProb(t)),
+    bySide: groupSummary(closed, (t) => t.side || 'unknown'),
+    byRecActionAtEntry: groupSummary(closed, (t) => t.recActionAtEntry || 'unknown'),
     bySideInferred: groupSummary(closed, (t) => {
       if (t.sideInferred === true) return 'inferred';
       if (t.sideInferred === false) return 'explicit';
