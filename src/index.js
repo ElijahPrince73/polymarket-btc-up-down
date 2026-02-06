@@ -262,6 +262,20 @@ async function startApp() {
 
     const polySnapshot = await fetchPolymarketSnapshot();
 
+    // --- Liquidity sampling (Polymarket) ---
+    try {
+      const { recordLiquiditySample } = await import('./analytics/liquiditySampler.js');
+      const m = polySnapshot?.market;
+      recordLiquiditySample({
+        marketSlug: m?.slug ?? null,
+        liquidityNum: m?.liquidityNum ?? null,
+        spreadUp: polySnapshot?.orderbook?.up?.spread ?? null,
+        spreadDown: polySnapshot?.orderbook?.down?.spread ?? null
+      });
+    } catch (e) {
+      // never crash main loop
+    }
+
     // --- Indicator Calculations ---
     let indicatorsData = {};
     if (klines1m && klines1m.length >= CONFIG.candleWindowMinutes) {

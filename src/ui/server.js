@@ -6,6 +6,7 @@ import cors from 'cors';
 import { CONFIG } from '../config.js';
 import { initializeLedger, getLedger, recalculateSummary } from '../paper_trading/ledger.js'; // To fetch trade data and summary
 import { getOpenTrade, getTraderInstance } from '../paper_trading/trader.js'; // To get current open trade status
+import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquiditySampler.js';
 
 // Use __dirname polyfill for ES modules
 import { fileURLToPath } from 'url';
@@ -198,7 +199,16 @@ app.get('/api/analytics', async (req, res) => {
     await initializeLedger();
     const ledgerData = getLedger();
     const analytics = computeAnalytics(ledgerData.trades);
-    res.json(analytics);
+
+    // Liquidity stats from Polymarket sampling (independent of trade entries)
+    const rows = readLiquiditySamples({ limit: 20000 });
+    const liquidity = {
+      last1h: computeLiquidityStats(rows, { windowHours: 1 }),
+      last6h: computeLiquidityStats(rows, { windowHours: 6 }),
+      last24h: computeLiquidityStats(rows, { windowHours: 24 })
+    };
+
+    res.json({ ...analytics, liquidity });
   } catch (error) {
     console.error("Error fetching analytics:", error);
     res.status(500).json({ error: "Failed to fetch analytics data." });

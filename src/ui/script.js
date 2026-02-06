@@ -151,6 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const pct = (n, d = 1) => (typeof n === 'number' && Number.isFinite(n)) ? (n * 100).toFixed(d) + '%' : 'N/A';
 
             const top = analytics?.overview || {};
+            const liq = analytics?.liquidity || {};
+            const liq24 = liq.last24h || {};
+
+            const liqLine = (label, obj) => {
+                if (!obj || obj.avg == null) return `${label}: N/A`;
+                return `${label}: avg=${Math.round(obj.avg)} (n=${obj.samples ?? 0}, p50=${obj.p50 != null ? Math.round(obj.p50) : 'N/A'})`;
+            };
+
             analyticsOverviewDiv.textContent = [
                 `Closed Trades: ${top.closedTrades ?? 0}`,
                 `Wins / Losses: ${(top.wins ?? 0)} / ${(top.losses ?? 0)}`,
@@ -159,7 +167,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Avg Win: $${fmt(top.avgWin)}`,
                 `Avg Loss: $${fmt(top.avgLoss)}`,
                 `Profit Factor: ${fmt(top.profitFactor)}`,
-                `Expectancy / trade: $${fmt(top.expectancy)}`
+                `Expectancy / trade: $${fmt(top.expectancy)}`,
+                '',
+                `Polymarket liquidity (sampled):`,
+                liqLine('Last 1h', liq.last1h),
+                liqLine('Last 6h', liq.last6h),
+                liqLine('Last 24h', liq24)
             ].join('\n');
 
             const renderGroup = (tbody, rows) => {
