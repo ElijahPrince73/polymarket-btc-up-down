@@ -102,7 +102,7 @@ export const CONFIG = {
     // Liquidity filter (Polymarket market.liquidityNum). Raise this to avoid thin markets.
     minLiquidity: Number(process.env.MIN_LIQUIDITY) || 10000,
     // Volume filter (Polymarket market.volumeNum). Raise this to avoid choppy/low-participation markets.
-    minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 80000,
+    minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 50000,
     maxSpread: Number(process.env.MAX_SPREAD) || 0.05,
     requiredCandlesInDirection: Number(process.env.REQUIRED_CANDLES) || 2,
 
