@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const analyticsByTimeLeftBody = document.getElementById('analytics-by-timeleft');
     const analyticsByProbBody = document.getElementById('analytics-by-prob');
     const analyticsByLiqBody = document.getElementById('analytics-by-liq');
+    const analyticsByMktVolBody = document.getElementById('analytics-by-mktvol');
     const analyticsBySpreadBody = document.getElementById('analytics-by-spread');
     const analyticsBySideBody = document.getElementById('analytics-by-side');
     const analyticsByRecBody = document.getElementById('analytics-by-rec');
@@ -196,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderGroup(analyticsByTimeLeftBody, analytics.byEntryTimeLeftBucket);
             renderGroup(analyticsByProbBody, analytics.byEntryProbBucket);
             renderGroup(analyticsByLiqBody, analytics.byEntryLiquidityBucket);
+            renderGroup(analyticsByMktVolBody, analytics.byEntryMarketVolumeBucket);
             renderGroup(analyticsBySpreadBody, analytics.byEntrySpreadBucket);
             renderGroup(analyticsBySideBody, analytics.bySide);
             renderGroup(analyticsByRecBody, analytics.byRecActionAtEntry);
@@ -209,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (analyticsByTimeLeftBody) analyticsByTimeLeftBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsByProbBody) analyticsByProbBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsByLiqBody) analyticsByLiqBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
+            if (analyticsByMktVolBody) analyticsByMktVolBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsBySpreadBody) analyticsBySpreadBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsBySideBody) analyticsBySideBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';
             if (analyticsByRecBody) analyticsByRecBody.innerHTML = '<tr><td colspan="3">Error</td></tr>';

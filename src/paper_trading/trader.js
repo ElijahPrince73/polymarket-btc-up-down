@@ -143,7 +143,13 @@ export class Trader {
       ? (liquidityNum < minLiquidity)
       : false;
 
-    const isLowLiquidity = hasBadSpread || hasLowLiquidity;
+    const marketVolumeNum = signals.market?.volumeNum ?? null;
+    const minMarketVolumeNum = CONFIG.paperTrading.minMarketVolumeNum ?? 0;
+    const hasLowMarketVolume = (typeof marketVolumeNum === "number" && Number.isFinite(marketVolumeNum) && minMarketVolumeNum > 0)
+      ? (marketVolumeNum < minMarketVolumeNum)
+      : false;
+
+    const isLowLiquidity = hasBadSpread || hasLowLiquidity || hasLowMarketVolume;
 
     const isTooLateToEnter = timeLeftMin < CONFIG.paperTrading.noEntryFinalMinutes;
 
@@ -178,7 +184,9 @@ export class Trader {
     if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
     if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
     if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m)`);
-    if (isLowLiquidity) blockers.push("Low liquidity / high spread");
+    if (hasBadSpread) blockers.push("High spread");
+    if (hasLowLiquidity) blockers.push(`Low liquidity (<${minLiquidity})`);
+    if (hasLowMarketVolume) blockers.push(`Low market volume (<${minMarketVolumeNum})`);
     if (isLowVolume) blockers.push("Low volume");
 
     // Price sanity blockers
@@ -267,6 +275,7 @@ export class Trader {
 
         const modelProbAtEntry = side === "UP" ? signals.modelUp : signals.modelDown;
         const liquidityAtEntry = signals.market?.liquidityNum ?? null;
+        const volumeNumAtEntry = signals.market?.volumeNum ?? null;
         const spreadAtEntry = side === "UP" ? (spreadUp ?? null) : (spreadDown ?? null);
 
         this.openTrade = {
@@ -291,6 +300,7 @@ export class Trader {
           modelProbAtEntry: (typeof modelProbAtEntry === "number" && Number.isFinite(modelProbAtEntry)) ? modelProbAtEntry : null,
           edgeAtEntry: (typeof edge === "number" && Number.isFinite(edge)) ? edge : null,
           liquidityAtEntry: (typeof liquidityAtEntry === "number" && Number.isFinite(liquidityAtEntry)) ? liquidityAtEntry : null,
+          volumeNumAtEntry: (typeof volumeNumAtEntry === "number" && Number.isFinite(volumeNumAtEntry)) ? volumeNumAtEntry : null,
           spreadAtEntry: (typeof spreadAtEntry === "number" && Number.isFinite(spreadAtEntry)) ? spreadAtEntry : null,
           recActionAtEntry: signals.rec?.action ?? null
         };

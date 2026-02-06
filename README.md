@@ -12,6 +12,7 @@
 - Tuning: disabled Probability Flip exits (still used for conditional stop-loss logic).
 - Analytics: added more breakdowns (entry prob bucket, entry time-left bucket, side, rec action at entry, entry liquidity bucket, entry spread bucket) and started storing richer entry metadata on new trades.
 - Tuning: raised default MIN_LIQUIDITY to 10,000 to avoid thin markets.
+- Tuning: added Polymarket market volume filter (MIN_MARKET_VOLUME_NUM) + analytics bucket for it.
 
 ### 2026-02-04
 - Ledger: reset paper trading ledger to defaults (recent trades cleared). A backup JSON is saved in paper_trading/.

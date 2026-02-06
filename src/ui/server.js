@@ -94,6 +94,16 @@ function bucketSpread(trade) {
   return '5¢+';
 }
 
+function bucketMarketVolume(trade) {
+  const v = trade?.volumeNumAtEntry;
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 'unknown';
+  if (v < 25000) return '<25k';
+  if (v < 50000) return '25k–50k';
+  if (v < 100000) return '50k–100k';
+  if (v < 200000) return '100k–200k';
+  return '200k+';
+}
+
 function computeAnalytics(allTrades) {
   const trades = Array.isArray(allTrades) ? allTrades : [];
   const closed = trades.filter((t) => t && t.status === 'CLOSED');
@@ -130,6 +140,7 @@ function computeAnalytics(allTrades) {
     byEntryTimeLeftBucket: groupSummary(closed, (t) => bucketTimeLeftMin(t)),
     byEntryProbBucket: groupSummary(closed, (t) => bucketProb(t)),
     byEntryLiquidityBucket: groupSummary(closed, (t) => bucketLiquidity(t)),
+    byEntryMarketVolumeBucket: groupSummary(closed, (t) => bucketMarketVolume(t)),
     byEntrySpreadBucket: groupSummary(closed, (t) => bucketSpread(t)),
     bySide: groupSummary(closed, (t) => t.side || 'unknown'),
     byRecActionAtEntry: groupSummary(closed, (t) => t.recActionAtEntry || 'unknown'),
