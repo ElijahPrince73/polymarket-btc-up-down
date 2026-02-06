@@ -143,6 +143,7 @@ export class Trader {
       ? (liquidityNum < minLiquidity)
       : false;
 
+    // Market volume filter is optional (disabled by default)
     const marketVolumeNum = signals.market?.volumeNum ?? null;
     const minMarketVolumeNum = CONFIG.paperTrading.minMarketVolumeNum ?? 0;
     const hasLowMarketVolume = (typeof marketVolumeNum === "number" && Number.isFinite(marketVolumeNum) && minMarketVolumeNum > 0)
@@ -187,6 +188,13 @@ export class Trader {
     if (hasBadSpread) blockers.push("High spread");
     if (hasLowLiquidity) blockers.push(`Low liquidity (<${minLiquidity})`);
     if (hasLowMarketVolume) blockers.push(`Low market volume (<${minMarketVolumeNum})`);
+
+    // Chop/volatility filter (BTC reference)
+    const rangePct20 = signals.indicators?.rangePct20 ?? null;
+    const minRangePct20 = CONFIG.paperTrading.minRangePct20 ?? 0;
+    if (typeof rangePct20 === "number" && Number.isFinite(rangePct20) && minRangePct20 > 0 && rangePct20 < minRangePct20) {
+      blockers.push(`Choppy (range20 ${(rangePct20 * 100).toFixed(2)}% < ${(minRangePct20 * 100).toFixed(2)}%)`);
+    }
     if (isLowVolume) blockers.push("Low volume");
 
     // Price sanity blockers

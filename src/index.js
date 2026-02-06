@@ -294,6 +294,19 @@ async function startApp() {
       indicatorsData.heikenCount = haCC.count;
       indicatorsData.failedVwapReclaim = indicatorsData.vwapNow !== null && indicatorsData.vwapSeries.length >= 3 ? closes[closes.length - 1] < indicatorsData.vwapNow && indicatorsData.vwapSeries[indicatorsData.vwapSeries.length - 2] > indicatorsData.vwapSeries[indicatorsData.vwapSeries.length - 2] : false;
       indicatorsData.vwapCrossCount = countVwapCrosses(closes, indicatorsData.vwapSeries, 20);
+
+      // Chop metric: recent close range over last 20 minutes.
+      const lookback = 20;
+      const lastN = closes.slice(-lookback);
+      const lastClose = lastN.length ? lastN[lastN.length - 1] : null;
+      if (lastN.length && lastClose) {
+        const hi = Math.max(...lastN);
+        const lo = Math.min(...lastN);
+        indicatorsData.rangePct20 = (hi - lo) / lastClose;
+      } else {
+        indicatorsData.rangePct20 = null;
+      }
+
       // Volume is not available from Chainlink ticks; leave null so volume filter doesn't trigger.
       indicatorsData.volumeRecent = null;
       indicatorsData.volumeAvg = null;

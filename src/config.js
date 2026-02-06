@@ -101,8 +101,9 @@ export const CONFIG = {
     // Market quality filters
     // Liquidity filter (Polymarket market.liquidityNum). Raise this to avoid thin markets.
     minLiquidity: Number(process.env.MIN_LIQUIDITY) || 10000,
-    // Volume filter (Polymarket market.volumeNum). Raise this to avoid choppy/low-participation markets.
-    minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 50000,
+    // (disabled) Market volume filter. Use volatility/chop filters instead.
+    // Set MIN_MARKET_VOLUME_NUM > 0 to re-enable.
+    minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 0,
     maxSpread: Number(process.env.MAX_SPREAD) || 0.05,
     requiredCandlesInDirection: Number(process.env.REQUIRED_CANDLES) || 2,
 
@@ -119,6 +120,10 @@ export const CONFIG = {
     minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.005,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
     
+    // Chop/volatility filter (BTC reference): block entries when recent movement is too small.
+    // rangePct20 = (max(close,last20) - min(close,last20)) / lastClose
+    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0015,
+
     // Time filters
     noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 2,
 
