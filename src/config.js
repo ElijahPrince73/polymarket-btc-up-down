@@ -62,12 +62,12 @@ export const CONFIG = {
     contractSize: Number(process.env.PAPER_CONTRACT_SIZE) || 100,
     
     // Thresholds (higher = more hesitation)
-    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.60,
-    minProbMid: Number(process.env.MIN_PROB_MID) || 0.64,
-    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.68,
+    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.58,
+    minProbMid: Number(process.env.MIN_PROB_MID) || 0.62,
+    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.66,
     
-    edgeEarly: Number(process.env.EDGE_EARLY) || 0.08,
-    edgeMid: Number(process.env.EDGE_MID) || 0.12,
+    edgeEarly: Number(process.env.EDGE_EARLY) || 0.06,
+    edgeMid: Number(process.env.EDGE_MID) || 0.10,
     edgeLate: Number(process.env.EDGE_LATE) || 0.16,
 
     // Extra strictness knobs (used to improve odds without killing trade count)
