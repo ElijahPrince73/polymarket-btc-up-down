@@ -99,7 +99,8 @@ export const CONFIG = {
     flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 180,
     
     // Market quality filters
-    minLiquidity: Number(process.env.MIN_LIQUIDITY) || 1000,
+    // Liquidity filter (Polymarket market.liquidityNum). Raise this to avoid thin markets.
+    minLiquidity: Number(process.env.MIN_LIQUIDITY) || 10000,
     maxSpread: Number(process.env.MAX_SPREAD) || 0.05,
     requiredCandlesInDirection: Number(process.env.REQUIRED_CANDLES) || 2,
 

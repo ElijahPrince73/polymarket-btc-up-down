@@ -69,6 +69,30 @@ function bucketProb(trade) {
   return '0.70+';
 }
 
+function bucketLiquidity(trade) {
+  const l = trade?.liquidityAtEntry;
+  if (typeof l !== 'number' || !Number.isFinite(l)) return 'unknown';
+  if (l < 1000) return '<1k';
+  if (l < 5000) return '1k–5k';
+  if (l < 10000) return '5k–10k';
+  if (l < 25000) return '10k–25k';
+  if (l < 50000) return '25k–50k';
+  if (l < 100000) return '50k–100k';
+  return '100k+';
+}
+
+function bucketSpread(trade) {
+  const s = trade?.spreadAtEntry;
+  if (typeof s !== 'number' || !Number.isFinite(s)) return 'unknown';
+  // spread is in $ (0..1). Express in cents.
+  const c = s * 100;
+  if (c < 0.5) return '<0.5¢';
+  if (c < 1) return '0.5–1¢';
+  if (c < 2) return '1–2¢';
+  if (c < 5) return '2–5¢';
+  return '5¢+';
+}
+
 function computeAnalytics(allTrades) {
   const trades = Array.isArray(allTrades) ? allTrades : [];
   const closed = trades.filter((t) => t && t.status === 'CLOSED');
@@ -104,6 +128,8 @@ function computeAnalytics(allTrades) {
     byEntryPriceBucket: groupSummary(closed, (t) => bucketEntryPrice(t)),
     byEntryTimeLeftBucket: groupSummary(closed, (t) => bucketTimeLeftMin(t)),
     byEntryProbBucket: groupSummary(closed, (t) => bucketProb(t)),
+    byEntryLiquidityBucket: groupSummary(closed, (t) => bucketLiquidity(t)),
+    byEntrySpreadBucket: groupSummary(closed, (t) => bucketSpread(t)),
     bySide: groupSummary(closed, (t) => t.side || 'unknown'),
     byRecActionAtEntry: groupSummary(closed, (t) => t.recActionAtEntry || 'unknown'),
     bySideInferred: groupSummary(closed, (t) => {

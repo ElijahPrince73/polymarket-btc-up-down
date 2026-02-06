@@ -10,7 +10,8 @@
 - Tuning: tightened Probability Flip exits (higher min prob/margin + min hold time) and made MID/inferred entries slightly stricter.
 - Tuning: disabled auto-flipping on Probability Flip by default (FLIP_ON_PROB_FLIP=false) to reduce churn.
 - Tuning: disabled Probability Flip exits (still used for conditional stop-loss logic).
-- Analytics: added more breakdowns (entry prob bucket, entry time-left bucket, side, rec action at entry) and started storing richer entry metadata on new trades.
+- Analytics: added more breakdowns (entry prob bucket, entry time-left bucket, side, rec action at entry, entry liquidity bucket, entry spread bucket) and started storing richer entry metadata on new trades.
+- Tuning: raised default MIN_LIQUIDITY to 10,000 to avoid thin markets.
 
 ### 2026-02-04
 - Ledger: reset paper trading ledger to defaults (recent trades cleared). A backup JSON is saved in paper_trading/.
