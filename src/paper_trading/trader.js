@@ -189,6 +189,17 @@ export class Trader {
     if (hasLowLiquidity) blockers.push(`Low liquidity (<${minLiquidity})`);
     if (hasLowMarketVolume) blockers.push(`Low market volume (<${minMarketVolumeNum})`);
 
+    // Confidence filter: avoid 50/50 model conditions
+    const upP0 = typeof signals.modelUp === "number" ? signals.modelUp : null;
+    const downP0 = typeof signals.modelDown === "number" ? signals.modelDown : null;
+    const minModelMaxProb = CONFIG.paperTrading.minModelMaxProb ?? 0;
+    if (minModelMaxProb > 0 && upP0 !== null && downP0 !== null) {
+      const m = Math.max(upP0, downP0);
+      if (m < minModelMaxProb) {
+        blockers.push(`Low conviction (maxProb ${(m * 100).toFixed(1)}% < ${(minModelMaxProb * 100).toFixed(1)}%)`);
+      }
+    }
+
     // Chop/volatility filter (BTC reference)
     const rangePct20 = signals.indicators?.rangePct20 ?? null;
     const minRangePct20 = CONFIG.paperTrading.minRangePct20 ?? 0;

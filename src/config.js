@@ -122,7 +122,12 @@ export const CONFIG = {
     
     // Chop/volatility filter (BTC reference): block entries when recent movement is too small.
     // rangePct20 = (max(close,last20) - min(close,last20)) / lastClose
-    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0015,
+    // Moderate default: require ~0.20% range over last 20 minutes.
+    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.002,
+
+    // Confidence filter: avoid coin-flip markets where the model is near 50/50.
+    // We require max(modelUp, modelDown) >= this value to allow entries.
+    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.55,
 
     // Time filters
     noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 2,
