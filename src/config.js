@@ -104,7 +104,14 @@ export const CONFIG = {
     // (disabled) Market volume filter. Use volatility/chop filters instead.
     // Set MIN_MARKET_VOLUME_NUM > 0 to re-enable.
     minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 0,
-    maxSpread: Number(process.env.MAX_SPREAD) || 0.05,
+    // Max allowed Polymarket orderbook spread (dollars). 0.01 = 1¢
+    maxSpread: Number(process.env.MAX_SPREAD) || 0.01,
+
+    // Trading schedule filter (America/Los_Angeles)
+    // Weekday-only entries; exits always allowed.
+    weekdaysOnly: (process.env.WEEKDAYS_ONLY || "true").toLowerCase() === "true",
+    // Block new entries after this hour on Friday (0-23). Set empty/negative to disable.
+    noEntryAfterFridayHour: Number(process.env.NO_ENTRY_AFTER_FRIDAY_HOUR) || 17,
     requiredCandlesInDirection: Number(process.env.REQUIRED_CANDLES) || 2,
 
     // Volume filters (set to 0 to disable)

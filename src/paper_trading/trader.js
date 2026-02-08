@@ -154,6 +154,27 @@ export class Trader {
 
     const isTooLateToEnter = timeLeftMin < CONFIG.paperTrading.noEntryFinalMinutes;
 
+    // Weekday-only schedule filter (Pacific time). Exits are handled separately.
+    const weekdaysOnly = CONFIG.paperTrading.weekdaysOnly ?? false;
+    const noEntryAfterFridayHour = CONFIG.paperTrading.noEntryAfterFridayHour;
+    let isOutsideSchedule = false;
+    if (weekdaysOnly) {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(new Date());
+      const get = (t) => parts.find(p => p.type === t)?.value;
+      const wd = get('weekday');
+      const hour = Number(get('hour'));
+
+      const isWeekend = (wd === 'Sat' || wd === 'Sun');
+      const isFridayAfter = (wd === 'Fri' && Number.isFinite(noEntryAfterFridayHour) && noEntryAfterFridayHour >= 0 && hour >= noEntryAfterFridayHour);
+      isOutsideSchedule = isWeekend || isFridayAfter;
+    }
+
     // Volume filter
     const volumeRecent = signals.indicators?.volumeRecent ?? null;
     const volumeAvg = signals.indicators?.volumeAvg ?? null;
@@ -188,6 +209,7 @@ export class Trader {
     if (hasBadSpread) blockers.push("High spread");
     if (hasLowLiquidity) blockers.push(`Low liquidity (<${minLiquidity})`);
     if (hasLowMarketVolume) blockers.push(`Low market volume (<${minMarketVolumeNum})`);
+    if (isOutsideSchedule) blockers.push("Outside schedule (weekdays only / Friday cutoff)");
 
     // Confidence filter: avoid 50/50 model conditions
     const upP0 = typeof signals.modelUp === "number" ? signals.modelUp : null;

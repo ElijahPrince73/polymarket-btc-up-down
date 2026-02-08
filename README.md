@@ -73,8 +73,9 @@ A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 15-m
 - **Safety guards**:
   - Requires indicators to be populated before entering.
   - Avoids "dust"/invalid Polymarket prices (`MIN_POLY_PRICE`, `MAX_POLY_PRICE`).
-  - Market quality gating: minimum Polymarket **liquidity** + max spread.
+  - Market quality gating: minimum Polymarket **liquidity** + **tight max spread**.
   - Consolidation avoidance: blocks entries when BTC is too choppy (range filter) and when the model is near 50/50 (conviction filter).
+  - Schedule gating: **weekday-only entries** with a **Friday cutoff** (exits always allowed).
 
 ### UI + debugging
 - Runs a lightweight UI at **http://localhost:3000**:
