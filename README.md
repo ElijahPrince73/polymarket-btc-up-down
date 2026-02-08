@@ -48,6 +48,51 @@
 
 A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 15-minute** markets.
 
+## Features
+
+### Market + data feeds
+- **Auto-select latest 15m Polymarket market** (or pin a slug via `POLYMARKET_SLUG`).
+- Pulls **Polymarket prices** (UP/DOWN) + orderbook spread + market metadata.
+- BTC reference price primarily from **Chainlink BTC/USD** (via Polymarket live feed + on-chain fallback on Polygon RPC/WSS).
+- Optional Kraken REST used for seeding/backfilling candles (rate-limited + cached).
+
+### Indicators + signal engine
+- Builds **1m candles** from ticks (warm-starts with REST backfill so indicators populate quickly).
+- Computes and displays: **Heiken Ashi**, **RSI**, **MACD**, **VWAP** (+ slope/dist), plus helper regime/score outputs.
+- Produces a simple **direction probability** (LONG/SHORT) used for paper-trading decisions.
+
+### Paper trading (Polymarket contracts)
+- Trades the **Polymarket UP/DOWN contracts** (not BTC spot). Entry/exit/PnL are based on Polymarket contract prices.
+- **Local JSON ledger** persisted to `paper_trading/trades.json`.
+- **Bankroll-based position sizing**:
+  - `STARTING_BALANCE`, `STAKE_PCT`, `MIN_TRADE_USD`, `MAX_TRADE_USD`.
+- **Dynamic exits**:
+  - Always closes **near the end of the 15m market window** (“End of Candle”) to avoid rollover weirdness.
+  - Closes on **market slug rollover** (safety backstop).
+  - **Conditional stop loss** (`STOP_LOSS_PCT`) that triggers only when loss threshold is hit *and* the model is against the position (reduces chop-outs).
+- **Safety guards**:
+  - Requires indicators to be populated before entering.
+  - Avoids "dust"/invalid Polymarket prices (`MIN_POLY_PRICE`, `MAX_POLY_PRICE`).
+  - Market quality gating: minimum Polymarket **liquidity** + max spread.
+  - Consolidation avoidance: blocks entries when BTC is too choppy (range filter) and when the model is near 50/50 (conviction filter).
+
+### UI + debugging
+- Runs a lightweight UI at **http://localhost:3000**:
+  - **/api/status**: runtime snapshot + open trade + balance + “Why no entry?” blockers.
+  - **/api/trades**: recent trades (newest first in the UI).
+  - **/api/analytics**: performance analytics tables (PnL by exit reason/phase/price bucket/etc.) + liquidity sampling stats.
+- “**Why no entry?**” explains exactly which gates are blocking entries.
+
+### Analytics (performance + market conditions)
+- Analytics breakdowns include:
+  - by **exit reason**, **entry phase**, **entry price bucket**, **prob bucket**, **time-left bucket**, **liquidity bucket**, **spread bucket**, **side**, **rec action**.
+- Captures **entry metadata** on new trades (prob/edge/liquidity/spread/time-left) for better post-trade analysis.
+- Samples Polymarket **liquidity over time** to `paper_trading/liquidity_samples.jsonl` and reports 1h/6h/24h stats.
+
+### Ops / reliability
+- Designed to run under a process manager (e.g. **PM2**) to avoid session SIGTERM/SIGKILL issues.
+- Built-in REST throttling/caching and defensive error handling to avoid crashes.
+
 It combines:
 - Polymarket market selection + UP/DOWN prices + liquidity
 - Polymarket live WS **Chainlink BTC/USD CURRENT PRICE** (same feed shown on the Polymarket UI)
